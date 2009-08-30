@@ -10,6 +10,12 @@ Partial Public Class WebUserControl1
 
 #Region "Private Declarations"
   Private parameterHash As Hashtable
+  Private panelHeightFactor As Single = 0.9
+  Private panelWidthFactor As Single = 0.73
+  Private zoomFactor As Single = 1.25
+  Private minDPI As Integer = 20
+  Private maxDPI As Integer = 400
+  Private baseDPI As Integer = 150
 #End Region
 
 #Region "Properties"
@@ -96,17 +102,17 @@ Partial Public Class WebUserControl1
   End Sub
 
   Protected Sub ZoomOutButton_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs) Handles ZoomOutButton.Click
-    parameterHash("DPI") /= 1.25
-    If parameterHash("DPI") < 20 Then
-      parameterHash("DPI") = 20
+    parameterHash("DPI") /= zoomFactor
+    If parameterHash("DPI") < minDPI Then
+      parameterHash("DPI") = minDPI
     End If
     DisplayCurrentPage()
   End Sub
 
   Protected Sub ZoomInButton_Click(ByVal sender As Object, ByVal e As System.Web.UI.ImageClickEventArgs) Handles ZoomInButton.Click
-    parameterHash("DPI") *= 1.25
-    If parameterHash("DPI") > 600 Then
-      parameterHash("DPI") = 600
+    parameterHash("DPI") *= zoomFactor
+    If parameterHash("DPI") > maxDPI Then
+      parameterHash("DPI") = maxDPI
     End If
     DisplayCurrentPage()
   End Sub
@@ -171,7 +177,7 @@ Partial Public Class WebUserControl1
     parameterHash.Add("UserPassword", "")
     parameterHash.Add("OwnerPassword", "")
     parameterHash.Add("Password", "")
-    parameterHash.Add("DPI", 150)
+    parameterHash.Add("DPI", baseDPI)
     parameterHash.Add("PagesOnly", False)
     parameterHash.Add("CurrentImageFileName", "")
     parameterHash.Add("Rotation", New List(Of Integer))
@@ -260,13 +266,13 @@ Partial Public Class WebUserControl1
 #End Region
 
   Protected Sub FitToScreenButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles FitToScreenButton.Click
-    Dim panelsize As Drawing.Size = New Size(HiddenBrowserWidth.Value * 0.74, HiddenBrowserHeight.Value * 0.9)
+    Dim panelsize As Drawing.Size = New Size(HiddenBrowserWidth.Value * panelWidthFactor, HiddenBrowserHeight.Value * panelHeightFactor)
     parameterHash("DPI") = iTextSharpUtil.GetOptimalDPI(parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize)
     DisplayCurrentPage()
   End Sub
 
   Protected Sub FitToWidthButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles FitToWidthButton.Click
-    Dim panelsize As Drawing.Size = New Size(HiddenBrowserWidth.Value * 0.74, HiddenBrowserHeight.Value * 4)
+    Dim panelsize As Drawing.Size = New Size(HiddenBrowserWidth.Value * panelWidthFactor, HiddenBrowserHeight.Value * 4)
     parameterHash("DPI") = iTextSharpUtil.GetOptimalDPI(parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize)
     DisplayCurrentPage()
   End Sub

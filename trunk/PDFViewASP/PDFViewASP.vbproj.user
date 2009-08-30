@@ -11,7 +11,7 @@
           <SQLDebugging>False</SQLDebugging>
           <PublishCopyOption>RunFiles</PublishCopyOption>
           <PublishTargetLocation>C:\Inetpub\wwwroot\PDFView\</PublishTargetLocation>
-          <PublishDeleteAllFiles>True</PublishDeleteAllFiles>
+          <PublishDeleteAllFiles>False</PublishDeleteAllFiles>
           <PublishCopyAppData>True</PublishCopyAppData>
           <ExternalProgram>
           </ExternalProgram>
