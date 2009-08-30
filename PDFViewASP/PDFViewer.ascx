@@ -43,20 +43,19 @@
                 </asp:TableCell>
             </asp:TableRow>
         </asp:Table>
-        <asp:Panel ID="PicPanel" runat="server" Height="100%">
-            <asp:Table ID="Table1" runat="server" GridLines="Both" Height="100%" 
-                style="margin-right: 0px" Width="100%">
-                <asp:TableRow runat="server">
-                    <asp:TableCell ID="BookmarkCell" runat="server" Width="25%" Height="100%">                       
+        <asp:Panel ID="PicPanel" runat="server" Height="100%" Width ="100%">
+            <asp:Table ID="Table1" runat="server" GridLines="Both" Height="100%" style="margin-right: 0px" Width="100%">
+                <asp:TableRow runat="server" VerticalAlign="Top" HorizontalAlign="Left">
+                    <asp:TableCell ID="BookmarkCell" runat="server" Width="25%" Height="100%" VerticalAlign="Top" HorizontalAlign="Left">                       
                      <cc1:StatefullScrollPanel ID="BookmarkPanel" runat="server" ScrollBars="Auto" Width="250px" Height="700px">
-                                                        <asp:Table ID="BookmarkTable" runat="server">
-                            <asp:TableRow ID="BookmarkRow" runat="server">
-                            <asp:TableCell ID="BookmarkContentCell"  runat="server" Width="100%" Height="100%"></asp:TableCell>
+                                                        <asp:Table ID="BookmarkTable" runat="server" Width="100%" Height="100%">
+                            <asp:TableRow ID="BookmarkRow" runat="server" VerticalAlign="Top" HorizontalAlign="Left" Width="100%" Height="100%" >
+                            <asp:TableCell ID="BookmarkContentCell"  runat="server" Width="100%" Height="100%" VerticalAlign="Top" HorizontalAlign="Left"></asp:TableCell>
                             </asp:TableRow>
                             </asp:Table>
                         </cc1:StatefullScrollPanel>
                     </asp:TableCell>
-                    <asp:TableCell ID="PicCell" runat="server"  Width="75%" Height="100%"><cc1:StatefullScrollPanel ID="ImagePanel" runat="server" ScrollBars="Auto" BackColor="Silver" Width="700px" Height="700px"><center><asp:Image ID="CurrentPageImage" runat="server" ImageAlign="Middle" /></center></cc1:StatefullScrollPanel></asp:TableCell>
+                    <asp:TableCell ID="PicCell" runat="server"  Width="75%" Height="100%" VerticalAlign="Top" HorizontalAlign="Left"><cc1:StatefullScrollPanel ID="ImagePanel" runat="server" ScrollBars="Auto" BackColor="Silver" Width="700px" Height="700px" HorizontalAlign="Center"><asp:Image ID="CurrentPageImage" runat="server" ImageAlign="Middle" /></cc1:StatefullScrollPanel></asp:TableCell>
                 </asp:TableRow>
             </asp:Table></asp:Panel>
     </asp:Panel>
