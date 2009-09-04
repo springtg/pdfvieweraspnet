@@ -48,15 +48,12 @@ Public Class iTextSharpUtil
     If pageSize.Width > 0 And pageSize.Height > 0 Then
       Dim picHeight As Integer = oSize.Height
       Dim picWidth As Integer = oSize.Width
-      Dim dummyPicBox As New PictureBox
-      dummyPicBox.Size = oSize
-      'If (picWidth > picHeight And pageSize.Width < pageSize.Height) Or (picWidth < picHeight And pageSize.Width > pageSize.Height) Then
-      '  dummyPicBox.Width = picHeight
-      '  dummyPicBox.Height = picWidth
-      'End If
-      Dim HScale As Single = dummyPicBox.Width / pageSize.Width
-      Dim VScale As Single = dummyPicBox.Height / pageSize.Height
-      dummyPicBox.Dispose()
+      If (picWidth > picHeight And pageSize.Width < pageSize.Height) Or (picWidth < picHeight And pageSize.Width > pageSize.Height) Then
+        oSize.Width = picHeight
+        oSize.Height = picWidth
+      End If
+      Dim HScale As Single = oSize.Width / pageSize.Width
+      Dim VScale As Single = oSize.Height / pageSize.Height
       If HScale < VScale Then
         GetOptimalDPI = Math.Floor(72 * HScale)
       Else

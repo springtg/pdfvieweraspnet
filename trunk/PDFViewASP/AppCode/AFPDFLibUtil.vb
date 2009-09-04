@@ -11,6 +11,21 @@ Public Class AFPDFLibUtil
 
   Const RENDER_DPI As Integer = 150
 
+  Public Shared Function GetPageFromPDF(ByVal filename As String, ByVal destPath As String, ByVal PageNumber As Integer, Optional ByVal DPI As Integer = RENDER_DPI, Optional ByVal Password As String = "") As String
+    GetPageFromPDF = ""
+    Dim pdfDoc As New PDFLibNet.PDFWrapper
+    pdfDoc.LoadPDF(filename)
+    If Not Nothing Is pdfDoc Then
+      Dim outGuid As Guid = Guid.NewGuid()
+      Dim output As String = destPath & "\" & outGuid.ToString & ".png"
+      pdfDoc.ExportJpg(output, PageNumber, PageNumber, DPI, 80)
+      While (pdfDoc.IsJpgBusy)
+        Threading.Thread.Sleep(50)
+      End While
+      GetPageFromPDF = output
+    End If
+  End Function
+
 
   Public Shared Function GetOptimalDPI(ByRef pdfDoc As PDFLibNet.PDFWrapper, ByRef oSize As Drawing.Size) As Integer
     GetOptimalDPI = 0

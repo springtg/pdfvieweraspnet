@@ -12,6 +12,7 @@ Partial Public Class WebUserControl1
   Private parameterHash As Hashtable
   Private panelHeightFactor As Single = 0.9
   Private panelWidthFactor As Single = 0.73
+  Private panelBookWidthFactor As Single = 0.24
   Private zoomFactor As Single = 1.25
   Private minDPI As Integer = 20
   Private maxDPI As Integer = 400
@@ -182,6 +183,7 @@ Partial Public Class WebUserControl1
     parameterHash.Add("CurrentImageFileName", "")
     parameterHash.Add("Rotation", New List(Of Integer))
     parameterHash.Add("Bookmarks", "")
+    parameterHash.Add("UseXPDF", False)
   End Sub
 
 
@@ -228,10 +230,10 @@ Partial Public Class WebUserControl1
 
   Private Sub ResizePanels()
     If HiddenBrowserWidth.Value <> "" And HiddenBrowserHeight.Value <> "" Then
-      BookmarkPanel.Width = HiddenBrowserWidth.Value * 0.24
-      BookmarkPanel.Height = HiddenBrowserHeight.Value * 0.9
-      ImagePanel.Width = HiddenBrowserWidth.Value * 0.74
-      ImagePanel.Height = HiddenBrowserHeight.Value * 0.9
+      BookmarkPanel.Width = HiddenBrowserWidth.Value * panelBookWidthFactor
+      BookmarkPanel.Height = HiddenBrowserHeight.Value * panelHeightFactor
+      ImagePanel.Width = HiddenBrowserWidth.Value * panelWidthFactor
+      ImagePanel.Height = HiddenBrowserHeight.Value * panelHeightFactor
     End If
   End Sub
 
@@ -247,18 +249,23 @@ Partial Public Class WebUserControl1
     Dim destPath As String = Request.MapPath("render")
     Dim indexNum As Integer = (parameterHash("CurrentPageNumber") - 1)
     Dim numRotation As Integer = parameterHash("RotationPage")(indexNum)
-    Dim imageLocation As String = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath, parameterHash("CurrentPageNumber"), parameterHash("DPI"), parameterHash("Password"), numRotation)
+    Dim imageLocation As String
+    If parameterHash("UseXPDF") = True Then
+      imageLocation = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath, parameterHash("CurrentPageNumber"), parameterHash("DPI"), parameterHash("Password"), numRotation)
+    Else
+      imageLocation = ASPPDFLib.GetImageFromFileGS(parameterHash("PDFFileName"), destPath, parameterHash("CurrentPageNumber"), parameterHash("DPI"), parameterHash("Password"), numRotation)
+    End If
     ImageUtil.DeleteFile(parameterHash("CurrentImageFileName"))
     parameterHash("CurrentImageFileName") = imageLocation
     'Add full filename to the Cache with an expiration
     'When the expiration occurs, it will call OnCacheRemove whih will delete the file
-    Cache.Insert(New Guid().ToString & "_DeletePng", imageLocation, Nothing, expirationDate, noSlide, System.Web.Caching.CacheItemPriority.Default, callBack)
+    Cache.Insert(New Guid().ToString & "_DeleteFile", imageLocation, Nothing, expirationDate, noSlide, System.Web.Caching.CacheItemPriority.Default, callBack)
     Dim matchString As String = Request.MapPath("").Replace("\", "\\") ' escape backslashes
     CurrentPageImage.ImageUrl = Regex.Replace(imageLocation, matchString & "\\", "~/")
   End Sub
 
   Private Sub OnCacheRemove(ByVal key As String, ByVal val As Object, ByVal reason As CacheItemRemovedReason)
-    If Regex.IsMatch(key, "DeletePng") Then
+    If Regex.IsMatch(key, "DeleteFile") Then
       ImageUtil.DeleteFile(val)
     End If
   End Sub
