@@ -17,8 +17,8 @@ Public Class AFPDFLibUtil
     pdfDoc.LoadPDF(filename)
     If Not Nothing Is pdfDoc Then
       Dim outGuid As Guid = Guid.NewGuid()
-      Dim output As String = destPath & "\" & outGuid.ToString & ".png"
-      pdfDoc.ExportJpg(output, PageNumber, PageNumber, DPI, 80)
+      Dim output As String = destPath & "\" & outGuid.ToString & ".jpg"
+      pdfDoc.ExportJpg(output, PageNumber, PageNumber, DPI, 90)
       While (pdfDoc.IsJpgBusy)
         Threading.Thread.Sleep(50)
       End While
