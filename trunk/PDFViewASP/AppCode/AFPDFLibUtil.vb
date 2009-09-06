@@ -22,6 +22,7 @@ Public Class AFPDFLibUtil
       While (pdfDoc.IsJpgBusy)
         Threading.Thread.Sleep(50)
       End While
+      pdfDoc.Dispose()
       GetPageFromPDF = output
     End If
   End Function
@@ -122,8 +123,7 @@ StartPageList:
   Public Shared Sub FillHTMLTreeRecursive(ByVal olParent As PDFLibNet.OutlineItemCollection(Of PDFLibNet.OutlineItem), ByRef htmlString As String, ByRef pdfDoc As PDFLibNet.PDFWrapper)
     htmlString &= "<ul>"
     For Each ol As PDFLibNet.OutlineItem In olParent
-      ol.DoAction()
-      htmlString &= "<li><a href=""javascript:changePage('" & pdfDoc.CurrentPage & "')"">" & Web.HttpUtility.HtmlEncode(ol.Title) & "</a></li>"
+      htmlString &= "<li><a href=""javascript:changePage('" & ol.Destination.Page & "')"">" & Web.HttpUtility.HtmlEncode(ol.Title) & "</a></li>"
       If ol.KidsCount > 0 Then
         FillHTMLTreeRecursive(ol.Childrens, htmlString, pdfDoc)
       End If

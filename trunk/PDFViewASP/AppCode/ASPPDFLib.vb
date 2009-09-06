@@ -28,12 +28,12 @@
   End Function
 
 
-  Public Shared Function GetImageFromFileGS(ByVal sFileName As String, ByVal destPath As String, ByVal iFrameNumber As Integer, Optional ByVal DPI As Integer = 0, Optional ByVal password As String = "", Optional ByVal rotations As Integer = 0) As String
+  Public Shared Function GetImageFromFileGS(ByVal sFileName As String, ByVal destPath As String, ByVal pageNumber As Integer, Optional ByVal DPI As Integer = 0, Optional ByVal password As String = "", Optional ByVal rotations As Integer = 0) As String
     GetImageFromFileGS = Nothing
     If ImageUtil.IsPDF(sFileName) Then 'convert one frame to an image for viewing
-      GetImageFromFileGS = ConvertPDF.PDFConvert.GetPageFromPDF(sFileName, destPath, iFrameNumber + 1, DPI, password)
+      GetImageFromFileGS = ConvertPDF.PDFConvert.GetPageFromPDF(sFileName, destPath, pageNumber, DPI, password)
     ElseIf ImageUtil.IsTiff(sFileName) Then
-      GetImageFromFileGS = ImageUtil.GetFrameFromTiff(sFileName, destPath, iFrameNumber)
+      GetImageFromFileGS = ImageUtil.GetFrameFromTiff(sFileName, destPath, pageNumber - 1)
     End If
     ImageUtil.ApplyRotation(GetImageFromFileGS, rotations)
   End Function
