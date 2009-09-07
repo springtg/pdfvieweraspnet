@@ -4,10 +4,20 @@
   Private mFileName As String
 #End Region
 
+
+
 #Region "Public Methods"
 
-  Public Shared Function GetPageFromPDF(ByVal sourceFileName As String, ByVal destFolderPath As String, ByVal iPageNumber As Integer, Optional ByVal DPI As Integer = 0, Optional ByVal password As String = "", Optional ByVal rotations As Integer = 0) As String
-    GetPageFromPDF = AFPDFLibUtil.GetPageFromPDF(sourceFileName, destFolderPath, iPageNumber, DPI, password)
+  Public Shared Function GetPageFromPDF(ByVal sourceFileName As String _
+                                        , ByVal destFolderPath As String _
+                                        , ByRef iPageNumber As Integer _
+                                        , Optional ByVal DPI As Integer = 0 _
+                                        , Optional ByVal password As String = "" _
+                                        , Optional ByVal rotations As Integer = 0 _
+                                        , Optional ByVal searchText As String = "" _
+                                        , Optional ByVal searchDir As Integer = AFPDFLibUtil.SearchDirection.FromBeginning _
+                                        ) As String
+    GetPageFromPDF = AFPDFLibUtil.GetPageFromPDF(sourceFileName, destFolderPath, iPageNumber, DPI, password, searchText, searchDir)
     ImageUtil.ApplyRotation(GetPageFromPDF, rotations)
   End Function
 
@@ -39,7 +49,5 @@
   End Function
 
 #End Region
-
-
 
 End Class

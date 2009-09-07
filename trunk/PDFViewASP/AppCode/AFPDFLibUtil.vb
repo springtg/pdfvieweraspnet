@@ -11,19 +11,69 @@ Public Class AFPDFLibUtil
 
   Const RENDER_DPI As Integer = 150
 
-  Public Shared Function GetPageFromPDF(ByVal filename As String, ByVal destPath As String, ByVal PageNumber As Integer, Optional ByVal DPI As Integer = RENDER_DPI, Optional ByVal Password As String = "") As String
+  Public Shared Function GetPageFromPDF(ByVal filename As String, ByVal destPath As String, ByRef PageNumber As Integer, Optional ByVal DPI As Integer = RENDER_DPI, Optional ByVal Password As String = "", Optional ByVal searchText As String = "", Optional ByVal searchDir As SearchDirection = 0) As String
     GetPageFromPDF = ""
     Dim pdfDoc As New PDFLibNet.PDFWrapper
     pdfDoc.LoadPDF(filename)
     If Not Nothing Is pdfDoc Then
+      pdfDoc.CurrentPage = PageNumber
       Dim outGuid As Guid = Guid.NewGuid()
       Dim output As String = destPath & "\" & outGuid.ToString & ".jpg"
+      If searchText <> "" Then
+        Dim lFound As Integer = 0
+        If searchDir = SearchDirection.FromBeginning Then
+          lFound = pdfDoc.FindFirst(searchText, PDFLibNet.PDFSearchOrder.PDFSearchFromdBegin, False, False)
+        ElseIf searchDir = SearchDirection.Forwards Then
+          lFound = pdfDoc.FindFirst(searchText, PDFLibNet.PDFSearchOrder.PDFSearchFromCurrent, False, False)
+        ElseIf searchDir = SearchDirection.Backwards Then
+          lFound = pdfDoc.FindFirst(searchText, PDFLibNet.PDFSearchOrder.PDFSearchFromCurrent, True, False)
+        End If
+        If lFound > 0 Then
+          If searchDir = SearchDirection.FromBeginning Then
+            PageNumber = pdfDoc.SearchResults(0).Page
+          ElseIf searchDir = SearchDirection.Forwards Then
+            If pdfDoc.SearchResults(0).Page > PageNumber Then
+              PageNumber = pdfDoc.SearchResults(0).Page
+            Else
+              PageNumber = SearchForNextText(pdfDoc, searchText, PageNumber, searchDir)
+            End If
+          ElseIf searchDir = SearchDirection.Backwards Then
+            If pdfDoc.SearchResults(0).Page < PageNumber Then
+              PageNumber = pdfDoc.SearchResults(0).Page
+            Else
+              PageNumber = SearchForNextText(pdfDoc, searchText, PageNumber, searchDir)
+            End If
+          End If
+        End If
+      End If
       pdfDoc.ExportJpg(output, PageNumber, PageNumber, DPI, 90)
       While (pdfDoc.IsJpgBusy)
         Threading.Thread.Sleep(50)
       End While
       pdfDoc.Dispose()
       GetPageFromPDF = output
+    End If
+  End Function
+
+  Public Shared Function SearchForNextText(ByRef pdfDoc As PDFLibNet.PDFWrapper, ByVal searchText As String, ByVal currentPage As Integer, ByVal searchDir As SearchDirection) As Integer
+    If Not Nothing Is pdfDoc Then
+SearchPDF:
+      Dim lFound As Integer = 0
+      If searchDir = SearchDirection.Forwards Then
+        lFound = pdfDoc.FindNext(searchText)
+      ElseIf searchDir = SearchDirection.Backwards Then
+        lFound = pdfDoc.FindPrevious(searchText)
+      End If
+      If lFound > 0 Then
+        If (pdfDoc.SearchResults(0).Page > currentPage And searchDir = SearchDirection.Forwards) _
+        Or (pdfDoc.SearchResults(0).Page < currentPage And searchDir = SearchDirection.Backwards) Then
+          Return pdfDoc.SearchResults(0).Page
+        Else
+          GoTo SearchPDF
+        End If
+      Else
+        Return currentPage
+      End If
     End If
   End Function
 
@@ -130,6 +180,12 @@ StartPageList:
     Next
     htmlString &= "</ul>"
   End Sub
+
+  Public Enum SearchDirection
+    FromBeginning
+    Backwards
+    Forwards
+  End Enum
 
 End Class
 

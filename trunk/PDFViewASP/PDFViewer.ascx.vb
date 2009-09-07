@@ -71,6 +71,9 @@ Partial Public Class WebUserControl1
 
   Protected Sub Control_load() Handles MyBase.Load
     ResizePanels()
+    If Not Nothing Is parameterHash Then
+      parameterHash("SearchText") = SearchTextBox.Text
+    End If
     PreviousPageButton.Attributes.Add("onclick", "getBrowserDimensions()")
     NextPageButton.Attributes.Add("onclick", "getBrowserDimensions()")
     ZoomInButton.Attributes.Add("onclick", "getBrowserDimensions()")
@@ -183,7 +186,9 @@ Partial Public Class WebUserControl1
     parameterHash.Add("CurrentImageFileName", "")
     parameterHash.Add("Rotation", New List(Of Integer))
     parameterHash.Add("Bookmarks", "")
-    parameterHash.Add("UseXPDF", False)
+    parameterHash.Add("SearchText", "")
+    parameterHash.Add("SearchDirection", AFPDFLibUtil.SearchDirection.FromBeginning)
+    parameterHash.Add("UseXPDF", True)
   End Sub
 
 
@@ -237,7 +242,7 @@ Partial Public Class WebUserControl1
     End If
   End Sub
 
-  Private Sub DisplayCurrentPage()
+  Private Sub DisplayCurrentPage(Optional ByVal doSearch As Boolean = False)
     'Set how long to wait before deleting the generated PNG file
     Dim expirationDate As DateTime = Now.AddMinutes(5)
     Dim noSlide As TimeSpan = System.Web.Caching.Cache.NoSlidingExpiration
@@ -251,7 +256,19 @@ Partial Public Class WebUserControl1
     Dim numRotation As Integer = parameterHash("RotationPage")(indexNum)
     Dim imageLocation As String
     If parameterHash("UseXPDF") = True Then
-      imageLocation = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath, parameterHash("CurrentPageNumber"), parameterHash("DPI"), parameterHash("Password"), numRotation)
+      If doSearch = False Then
+        imageLocation = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath, parameterHash("CurrentPageNumber"), parameterHash("DPI"), parameterHash("Password"), numRotation)
+      Else
+        imageLocation = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath _
+                                                 , parameterHash("CurrentPageNumber") _
+                                                 , parameterHash("DPI") _
+                                                 , parameterHash("Password") _
+                                                 , numRotation, parameterHash("SearchText") _
+                                                 , parameterHash("SearchDirection") _
+                                                 )
+        UpdatePageLabel()
+      End If
+
     Else
       imageLocation = ASPPDFLib.GetImageFromFileGS(parameterHash("PDFFileName"), destPath, parameterHash("CurrentPageNumber"), parameterHash("DPI"), parameterHash("Password"), numRotation)
     End If
@@ -287,5 +304,20 @@ Partial Public Class WebUserControl1
   Protected Sub ActualSizeButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles ActualSizeButton.Click
     parameterHash("DPI") = 150
     DisplayCurrentPage()
+  End Sub
+
+  Protected Sub SearchButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles SearchButton.Click
+    parameterHash("SearchDirection") = AFPDFLibUtil.SearchDirection.FromBeginning
+    DisplayCurrentPage(True)
+  End Sub
+
+  Protected Sub SearchNextButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles SearchNextButton.Click
+    parameterHash("SearchDirection") = AFPDFLibUtil.SearchDirection.Forwards
+    DisplayCurrentPage(True)
+  End Sub
+
+  Protected Sub SearchPreviousButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles SearchPreviousButton.Click
+    parameterHash("SearchDirection") = AFPDFLibUtil.SearchDirection.Backwards
+    DisplayCurrentPage(True)
   End Sub
 End Class

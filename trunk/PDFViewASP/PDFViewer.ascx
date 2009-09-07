@@ -32,15 +32,27 @@
                 <asp:TableCell ID="TableCell9" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
                     <asp:ImageButton ID="RotateCButton" runat="server" ImageUrl="images/Redo_24x24.png" />
                 </asp:TableCell>
-                <asp:TableCell ID="TableCell10" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:Button ID="FitToScreenButton" runat="server" Text="Fit To Screen" />
+                <asp:TableCell ID="TableCell10" runat="server" VerticalAlign="Middle" HorizontalAlign="Center" Width="24px">
+                    <asp:ImageButton ID="FitToScreenButton" runat="server" ImageUrl="images/FitToScreen.png" />      
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell11" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:Button ID="FitToWidthButton" runat="server" Text="Fit To Width" />
+                    <asp:ImageButton ID="FitToWidthButton" runat="server" ImageUrl="images/FitToWidth.png" />
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell12" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:Button ID="ActualSizeButton" runat="server" Text="Actual Size" />
+                    <asp:ImageButton ID="ActualSizeButton" runat="server" ImageUrl="images/ActualSize.png" />
                 </asp:TableCell>
+                <asp:TableCell ID="TableCell13" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
+                    <asp:ImageButton ID="SearchButton" runat="server" ImageUrl="images/Search_24x24.png" />                   
+                </asp:TableCell>
+                <asp:TableCell ID="TableCell14" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
+                    <asp:TextBox ID="SearchTextBox" runat="server" MaxLength="100" Width="100px"></asp:TextBox>
+                </asp:TableCell>
+                <asp:TableCell ID="TableCell15" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
+                    <asp:ImageButton ID="SearchPreviousButton" runat="server" ImageUrl="images/Rewind_24x24.png" />
+                </asp:TableCell>
+                <asp:TableCell ID="TableCell16" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
+                    <asp:ImageButton ID="SearchNextButton" runat="server" ImageUrl="images/Play_24x24.png" />
+                </asp:TableCell>                
             </asp:TableRow>
         </asp:Table>
         <asp:Panel ID="PicPanel" runat="server" Height="100%" Width ="100%">
