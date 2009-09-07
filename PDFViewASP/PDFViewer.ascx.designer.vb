@@ -229,7 +229,7 @@ Partial Public Class WebUserControl1
   '''Auto-generated field.
   '''To modify move field declaration from designer file to code-behind file.
   '''</remarks>
-  Protected WithEvents FitToScreenButton As Global.System.Web.UI.WebControls.Button
+  Protected WithEvents FitToScreenButton As Global.System.Web.UI.WebControls.ImageButton
 
   '''<summary>
   '''TableCell11 control.
@@ -247,7 +247,7 @@ Partial Public Class WebUserControl1
   '''Auto-generated field.
   '''To modify move field declaration from designer file to code-behind file.
   '''</remarks>
-  Protected WithEvents FitToWidthButton As Global.System.Web.UI.WebControls.Button
+  Protected WithEvents FitToWidthButton As Global.System.Web.UI.WebControls.ImageButton
 
   '''<summary>
   '''TableCell12 control.
@@ -265,7 +265,79 @@ Partial Public Class WebUserControl1
   '''Auto-generated field.
   '''To modify move field declaration from designer file to code-behind file.
   '''</remarks>
-  Protected WithEvents ActualSizeButton As Global.System.Web.UI.WebControls.Button
+  Protected WithEvents ActualSizeButton As Global.System.Web.UI.WebControls.ImageButton
+
+  '''<summary>
+  '''TableCell13 control.
+  '''</summary>
+  '''<remarks>
+  '''Auto-generated field.
+  '''To modify move field declaration from designer file to code-behind file.
+  '''</remarks>
+  Protected WithEvents TableCell13 As Global.System.Web.UI.WebControls.TableCell
+
+  '''<summary>
+  '''SearchButton control.
+  '''</summary>
+  '''<remarks>
+  '''Auto-generated field.
+  '''To modify move field declaration from designer file to code-behind file.
+  '''</remarks>
+  Protected WithEvents SearchButton As Global.System.Web.UI.WebControls.ImageButton
+
+  '''<summary>
+  '''TableCell14 control.
+  '''</summary>
+  '''<remarks>
+  '''Auto-generated field.
+  '''To modify move field declaration from designer file to code-behind file.
+  '''</remarks>
+  Protected WithEvents TableCell14 As Global.System.Web.UI.WebControls.TableCell
+
+  '''<summary>
+  '''SearchTextBox control.
+  '''</summary>
+  '''<remarks>
+  '''Auto-generated field.
+  '''To modify move field declaration from designer file to code-behind file.
+  '''</remarks>
+  Protected WithEvents SearchTextBox As Global.System.Web.UI.WebControls.TextBox
+
+  '''<summary>
+  '''TableCell15 control.
+  '''</summary>
+  '''<remarks>
+  '''Auto-generated field.
+  '''To modify move field declaration from designer file to code-behind file.
+  '''</remarks>
+  Protected WithEvents TableCell15 As Global.System.Web.UI.WebControls.TableCell
+
+  '''<summary>
+  '''SearchPreviousButton control.
+  '''</summary>
+  '''<remarks>
+  '''Auto-generated field.
+  '''To modify move field declaration from designer file to code-behind file.
+  '''</remarks>
+  Protected WithEvents SearchPreviousButton As Global.System.Web.UI.WebControls.ImageButton
+
+  '''<summary>
+  '''TableCell16 control.
+  '''</summary>
+  '''<remarks>
+  '''Auto-generated field.
+  '''To modify move field declaration from designer file to code-behind file.
+  '''</remarks>
+  Protected WithEvents TableCell16 As Global.System.Web.UI.WebControls.TableCell
+
+  '''<summary>
+  '''SearchNextButton control.
+  '''</summary>
+  '''<remarks>
+  '''Auto-generated field.
+  '''To modify move field declaration from designer file to code-behind file.
+  '''</remarks>
+  Protected WithEvents SearchNextButton As Global.System.Web.UI.WebControls.ImageButton
 
   '''<summary>
   '''PicPanel control.
