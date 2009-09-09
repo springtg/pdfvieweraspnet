@@ -1,11 +1,5 @@
 ﻿Public Class ASPPDFLib
 
-#Region "Private Variables"
-  Private mFileName As String
-#End Region
-
-
-
 #Region "Public Methods"
 
   Public Shared Function GetPageFromPDF(ByVal sourceFileName As String _
@@ -36,7 +30,6 @@
   Public Shared Function GetWebBookmarkTree(ByVal sourceFileName As String, ByVal password As String, ByVal treeViewCol As Web.UI.WebControls.TreeNodeCollection) As Boolean
     Return iTextSharpUtil.BuildASPBookmarkTreeFromPDF(sourceFileName, treeViewCol, password)
   End Function
-
 
   Public Shared Function GetImageFromFileGS(ByVal sFileName As String, ByVal destPath As String, ByVal pageNumber As Integer, Optional ByVal DPI As Integer = 0, Optional ByVal password As String = "", Optional ByVal rotations As Integer = 0) As String
     GetImageFromFileGS = Nothing
