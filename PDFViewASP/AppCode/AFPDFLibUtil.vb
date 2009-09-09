@@ -14,11 +14,11 @@ Public Class AFPDFLibUtil
   Public Shared Function GetPageFromPDF(ByVal filename As String, ByVal destPath As String, ByRef PageNumber As Integer, Optional ByVal DPI As Integer = RENDER_DPI, Optional ByVal Password As String = "", Optional ByVal searchText As String = "", Optional ByVal searchDir As SearchDirection = 0) As String
     GetPageFromPDF = ""
     Dim pdfDoc As New PDFLibNet.PDFWrapper
+    pdfDoc.RenderDPI = 72
     pdfDoc.LoadPDF(filename)
     If Not Nothing Is pdfDoc Then
       pdfDoc.CurrentPage = PageNumber
-      Dim outGuid As Guid = Guid.NewGuid()
-      Dim output As String = destPath & "\" & outGuid.ToString & ".jpg"
+      Dim searchResult As PDFLibNet.PDFSearchResult
       If searchText <> "" Then
         Dim lFound As Integer = 0
         If searchDir = SearchDirection.FromBeginning Then
@@ -31,31 +31,119 @@ Public Class AFPDFLibUtil
         If lFound > 0 Then
           If searchDir = SearchDirection.FromBeginning Then
             PageNumber = pdfDoc.SearchResults(0).Page
+            searchResult = pdfDoc.SearchResults(0)
           ElseIf searchDir = SearchDirection.Forwards Then
             If pdfDoc.SearchResults(0).Page > PageNumber Then
               PageNumber = pdfDoc.SearchResults(0).Page
+              searchResult = pdfDoc.SearchResults(0)
             Else
-              PageNumber = SearchForNextText(pdfDoc, searchText, PageNumber, searchDir)
+              searchResult = SearchForNextText(pdfDoc, searchText, PageNumber, searchDir)
+              PageNumber = searchResult.Page
             End If
           ElseIf searchDir = SearchDirection.Backwards Then
             If pdfDoc.SearchResults(0).Page < PageNumber Then
               PageNumber = pdfDoc.SearchResults(0).Page
             Else
-              PageNumber = SearchForNextText(pdfDoc, searchText, PageNumber, searchDir)
+              searchResult = SearchForNextText(pdfDoc, searchText, PageNumber, searchDir)
+              If Not Nothing Is searchResult Then
+                PageNumber = searchResult.Page
+              End If
             End If
           End If
         End If
       End If
+      Dim outGuid As Guid = Guid.NewGuid()
+      Dim output As String = destPath & "\" & outGuid.ToString & ".jpg"
+      pdfDoc.ExportJpg(output, PageNumber, PageNumber, DPI, 90)
+      While (pdfDoc.IsJpgBusy)
+        Threading.Thread.Sleep(50)
+      End While
+      'Dim pdfPage As PDFLibNet.PDFPage = pdfDoc.Pages(PageNumber)
+      'Dim bmp As Bitmap = pdfPage.GetBitmap(pdfPage.Width, pdfPage.Height)
+      'bmp.Save(output, System.Drawing.Imaging.ImageFormat.Png)
+      'bmp.Dispose()
+      pdfDoc.Dispose()
+      GetPageFromPDF = output
+      If Not Nothing Is searchResult Then
+        GetPageFromPDF = HighlightSearchCriteria(output, DPI, searchResult)
+      End If
+    End If
+  End Function
+
+  Public Shared Function GetPageFromPDFNoSearch(ByVal filename As String, ByVal destPath As String, ByRef PageNumber As Integer, Optional ByVal DPI As Integer = RENDER_DPI, Optional ByVal Password As String = "", Optional ByVal searchText As String = "", Optional ByVal searchDir As SearchDirection = 0) As String
+    GetPageFromPDFNoSearch = ""
+    Dim pdfDoc As New PDFLibNet.PDFWrapper
+    pdfDoc.LoadPDF(filename)
+    If Not Nothing Is pdfDoc Then
+      Dim outGuid As Guid = Guid.NewGuid()
+      Dim output As String = destPath & "\" & outGuid.ToString & ".png"
       pdfDoc.ExportJpg(output, PageNumber, PageNumber, DPI, 90)
       While (pdfDoc.IsJpgBusy)
         Threading.Thread.Sleep(50)
       End While
       pdfDoc.Dispose()
-      GetPageFromPDF = output
+      GetPageFromPDFNoSearch = output
     End If
   End Function
 
-  Public Shared Function SearchForNextText(ByRef pdfDoc As PDFLibNet.PDFWrapper, ByVal searchText As String, ByVal currentPage As Integer, ByVal searchDir As SearchDirection) As Integer
+  Public Shared Function GetAllSearchResults(ByVal filename As String, ByVal searchText As String) As List(Of PDFLibNet.PDFSearchResult)
+    GetAllSearchResults = New List(Of PDFLibNet.PDFSearchResult)
+    Dim pdfDoc As New PDFLibNet.PDFWrapper
+    pdfDoc.LoadPDF(filename)
+    If Not Nothing Is pdfDoc Then
+      Dim lFound As Integer = 0
+      lFound = pdfDoc.FindFirst(searchText, PDFLibNet.PDFSearchOrder.PDFSearchFromdBegin, False, False)
+      If lFound > 0 Then
+        For Each item As PDFLibNet.PDFSearchResult In pdfDoc.SearchResults
+          GetAllSearchResults.Add(item)
+        Next
+FindLoop:
+        lFound = pdfDoc.FindNext(searchText)
+        If lFound > 0 Then
+          For Each item As PDFLibNet.PDFSearchResult In pdfDoc.SearchResults
+            If GetAllSearchResults.Contains(item) Then
+              pdfDoc.Dispose()
+              Exit Function
+            Else
+              GetAllSearchResults.Add(item)
+            End If
+          Next
+        Else
+          pdfDoc.Dispose()
+          Exit Function
+        End If
+        GoTo FindLoop
+      End If
+    End If
+  End Function
+
+
+  Public Shared Function HighlightSearchCriteria(ByVal fileName As String, ByVal DPI As Integer, ByRef searchResult As PDFLibNet.PDFSearchResult) As String
+    HighlightSearchCriteria = fileName
+
+    Dim bmp As New Bitmap(fileName)
+    Dim gBmp As Graphics = Graphics.FromImage(bmp)
+    Dim scale As Single = DPI / 72
+
+    ' draw a green rectangle to the bitmap in memory
+    Dim blue As Color = Color.FromArgb(&H40, 0, 0, &HFF)
+    Dim blueBrush As Brush = New SolidBrush(blue)
+
+    'Need to know base DPI and whether to flip/scale X and Y and Size
+    gBmp.FillRectangle(blueBrush, searchResult.Position.X * scale, searchResult.Position.Y * scale, searchResult.Position.Width * scale, searchResult.Position.Height * scale)
+
+    Dim outputPath As String = Regex.Replace(fileName, "(^.+\\).+$", "$1")
+    Dim outputFileName As String = outputPath & Guid.NewGuid().ToString & ".jpg"
+    bmp.Save(outputFileName, Imaging.ImageFormat.Jpeg)
+    bmp.Dispose()
+    ImageUtil.DeleteFile(fileName)
+    HighlightSearchCriteria = outputFileName
+    gBmp.Dispose()
+    blueBrush.Dispose()
+
+  End Function
+
+  Public Shared Function SearchForNextText(ByRef pdfDoc As PDFLibNet.PDFWrapper, ByVal searchText As String, ByVal currentPage As Integer, ByVal searchDir As SearchDirection) As PDFLibNet.PDFSearchResult
     If Not Nothing Is pdfDoc Then
 SearchPDF:
       Dim lFound As Integer = 0
@@ -67,16 +155,26 @@ SearchPDF:
       If lFound > 0 Then
         If (pdfDoc.SearchResults(0).Page > currentPage And searchDir = SearchDirection.Forwards) _
         Or (pdfDoc.SearchResults(0).Page < currentPage And searchDir = SearchDirection.Backwards) Then
-          Return pdfDoc.SearchResults(0).Page
+          Return pdfDoc.SearchResults(0)
         Else
           GoTo SearchPDF
         End If
       Else
-        Return currentPage
+        Return Nothing
       End If
     End If
   End Function
 
+  Public Shared Function GetJPGFromPDFDoc(ByRef pdfDoc As PDFLibNet.PDFWrapper, ByVal destPath As String, ByVal PageNumber As Integer, ByVal DPI As Integer) As String
+    GetJPGFromPDFDoc = ""
+    Dim outGuid As Guid = Guid.NewGuid()
+    Dim output As String = destPath & "\" & outGuid.ToString & ".jpg"
+    pdfDoc.ExportJpg(output, PageNumber, PageNumber, DPI, 90)
+    While (pdfDoc.IsJpgBusy)
+      Threading.Thread.Sleep(50)
+    End While
+    pdfDoc.Dispose()
+  End Function
 
   Public Shared Function GetOptimalDPI(ByRef pdfDoc As PDFLibNet.PDFWrapper, ByRef oSize As Drawing.Size) As Integer
     GetOptimalDPI = 0
@@ -169,6 +267,15 @@ StartPageList:
       Exit Function
     End If
   End Function
+
+  Public Shared Function BuildHTMLBookmarksFromSearchResults(ByVal searchResults As List(Of PDFLibNet.PDFSearchResult)) As String
+    BuildHTMLBookmarksFromSearchResults = "<!--SearchResults--><ul>"
+    For Each item As PDFLibNet.PDFSearchResult In searchResults
+      BuildHTMLBookmarksFromSearchResults &= "<li><a href=""javascript:changePage('" & item.Page & "')"">Page " & item.Page & " (position: " & item.Position.Location.ToString & "</a></li>"
+    Next
+    BuildHTMLBookmarksFromSearchResults &= "</ul>"
+  End Function
+
 
   Public Shared Sub FillHTMLTreeRecursive(ByVal olParent As PDFLibNet.OutlineItemCollection(Of PDFLibNet.OutlineItem), ByRef htmlString As String, ByRef pdfDoc As PDFLibNet.PDFWrapper)
     htmlString &= "<ul>"

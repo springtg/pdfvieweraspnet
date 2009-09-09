@@ -309,6 +309,9 @@ Partial Public Class WebUserControl1
   Protected Sub SearchButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles SearchButton.Click
     parameterHash("SearchDirection") = AFPDFLibUtil.SearchDirection.FromBeginning
     DisplayCurrentPage(True)
+    'BookmarkContentCell.Text = AFPDFLibUtil.BuildHTMLBookmarksFromSearchResults( _
+    'AFPDFLibUtil.GetAllSearchResults(parameterHash("PDFFileName"), parameterHash("SearchText")) _
+    ')
   End Sub
 
   Protected Sub SearchNextButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles SearchNextButton.Click
