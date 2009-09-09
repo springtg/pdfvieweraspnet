@@ -18,6 +18,7 @@ Public Class AFPDFLibUtil
     pdfDoc.LoadPDF(filename)
     If Not Nothing Is pdfDoc Then
       pdfDoc.CurrentPage = PageNumber
+      pdfDoc.SearchCaseSensitive = False
       Dim searchResult As PDFLibNet.PDFSearchResult
       If searchText <> "" Then
         Dim lFound As Integer = 0
@@ -38,7 +39,9 @@ Public Class AFPDFLibUtil
               searchResult = pdfDoc.SearchResults(0)
             Else
               searchResult = SearchForNextText(pdfDoc, searchText, PageNumber, searchDir)
-              PageNumber = searchResult.Page
+              If Not Nothing Is searchResult Then
+                PageNumber = searchResult.Page
+              End If
             End If
           ElseIf searchDir = SearchDirection.Backwards Then
             If pdfDoc.SearchResults(0).Page < PageNumber Then
