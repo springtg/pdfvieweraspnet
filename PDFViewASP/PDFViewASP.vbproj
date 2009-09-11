@@ -83,10 +83,10 @@
     <Content Include="images\FitToScreen.png" />
     <Content Include="images\FitToWidth.png" />
     <Content Include="images\Next_24x24.png" />
-    <Content Include="images\Play_24x24.png" />
     <Content Include="images\Previous_24x24.png" />
     <Content Include="images\Redo_24x24.png" />
-    <Content Include="images\Rewind_24x24.png" />
+    <Content Include="images\SearchNext.png" />
+    <Content Include="images\SearchPrevious.png" />
     <Content Include="images\Search_24x24.png" />
     <Content Include="images\Undo_24x24.png" />
     <Content Include="images\Zoom In_24x24.png" />

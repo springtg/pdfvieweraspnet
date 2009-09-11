@@ -9,49 +9,49 @@
                     <asp:Label ID="PageLabel" runat="server" Text="Page 001 of 001" ></asp:Label>
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell2" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:ImageButton ID="PreviousPageButton" runat="server" ImageUrl="images/Previous_24x24.png" />
+                    <asp:ImageButton ID="PreviousPageButton" runat="server" ImageUrl="images/Previous_24x24.png" ToolTip="Previous Page"/>
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell3" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:ImageButton ID="NextPageButton" runat="server" ImageUrl="images/Next_24x24.png" />
+                    <asp:ImageButton ID="NextPageButton" runat="server" ImageUrl="images/Next_24x24.png" ToolTip="Next Page"/>
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell4" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
                     <asp:Label ID="GoToLabel" runat="server" Text="Go to page" ></asp:Label>
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell5" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:TextBox ID="PageNumberTextBox" runat="server" MaxLength="5" Width="35px"></asp:TextBox>
+                    <asp:TextBox ID="PageNumberTextBox" runat="server" MaxLength="5" Width="35px" ToolTip="Page number to go to"></asp:TextBox>
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell6" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:ImageButton ID="ZoomOutButton" runat="server" ImageUrl="images/Zoom Out_24x24.png" />
+                    <asp:ImageButton ID="ZoomOutButton" runat="server" ImageUrl="images/Zoom Out_24x24.png" ToolTip="Zoom Out"/>
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell7" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:ImageButton ID="ZoomInButton" runat="server" ImageUrl="images/Zoom In_24x24.png" />
+                    <asp:ImageButton ID="ZoomInButton" runat="server" ImageUrl="images/Zoom In_24x24.png" ToolTip="Zoom In"/>
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell8" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:ImageButton ID="RotateCCButton" runat="server" ImageUrl="images/Undo_24x24.png" />
+                    <asp:ImageButton ID="RotateCCButton" runat="server" ImageUrl="images/Undo_24x24.png" ToolTip="Rotate the page counter-clockwise"/>
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell9" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:ImageButton ID="RotateCButton" runat="server" ImageUrl="images/Redo_24x24.png" />
+                    <asp:ImageButton ID="RotateCButton" runat="server" ImageUrl="images/Redo_24x24.png" ToolTip="Rotate the page clockwise"/>
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell10" runat="server" VerticalAlign="Middle" HorizontalAlign="Center" Width="24px">
-                    <asp:ImageButton ID="FitToScreenButton" runat="server" ImageUrl="images/FitToScreen.png" />      
+                    <asp:ImageButton ID="FitToScreenButton" runat="server" ImageUrl="images/FitToScreen.png" ToolTip="View document where the entire page fits in the window"/>      
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell11" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:ImageButton ID="FitToWidthButton" runat="server" ImageUrl="images/FitToWidth.png" />
+                    <asp:ImageButton ID="FitToWidthButton" runat="server" ImageUrl="images/FitToWidth.png" ToolTip="View document where the page's width fits in the window"/>
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell12" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:ImageButton ID="ActualSizeButton" runat="server" ImageUrl="images/ActualSize.png" />
+                    <asp:ImageButton ID="ActualSizeButton" runat="server" ImageUrl="images/ActualSize.png" ToolTip="View document at 150 DPI"/>
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell13" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:ImageButton ID="SearchButton" runat="server" ImageUrl="images/Search_24x24.png" />                   
+                    <asp:ImageButton ID="SearchButton" runat="server" ImageUrl="images/Search_24x24.png" ToolTip="Search from the beginning of the document"/>                   
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell14" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:TextBox ID="SearchTextBox" runat="server" MaxLength="100" Width="100px"></asp:TextBox>
+                    <asp:TextBox ID="SearchTextBox" runat="server" MaxLength="100" Width="100px" ToolTip="Text to search for"></asp:TextBox>
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell15" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:ImageButton ID="SearchPreviousButton" runat="server" ImageUrl="images/Rewind_24x24.png" />
+                    <asp:ImageButton ID="SearchPreviousButton" runat="server" ImageUrl="images/SearchPrevious.png" ToolTip="Search for previous match"/>
                 </asp:TableCell>
                 <asp:TableCell ID="TableCell16" runat="server" VerticalAlign="Middle" HorizontalAlign="Center">
-                    <asp:ImageButton ID="SearchNextButton" runat="server" ImageUrl="images/Play_24x24.png" />
+                    <asp:ImageButton ID="SearchNextButton" runat="server" ImageUrl="images/SearchNext.png" ToolTip="Search for next match"/>
                 </asp:TableCell>                
             </asp:TableRow>
         </asp:Table>
