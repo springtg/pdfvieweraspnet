@@ -46,7 +46,7 @@ Public Class ImageUtil
 
   Public Shared Function GetImageFrameCount(ByVal sFileName As String, Optional ByVal userPassword As String = "") As Integer
     If ImageUtil.IsPDF(sFileName) Then
-      GetImageFrameCount = iTextSharpUtil.GetPDFPageCount(sFileName, userPassword)
+      GetImageFrameCount = AFPDFLibUtil.GetPDFPageCount(sFileName, userPassword)
     ElseIf ImageUtil.IsTiff(sFileName) Then
       GetImageFrameCount = GetTiffFrameCount(sFileName)
     End If

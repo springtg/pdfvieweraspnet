@@ -11,6 +11,17 @@ Public Class AFPDFLibUtil
 
   Const RENDER_DPI As Integer = 150
 
+  Public Shared Function GetPDFPageCount(ByVal filepath As String, Optional ByVal userPassword As String = "") As Integer
+    Dim pdfDoc As New PDFLibNet.PDFWrapper
+    pdfDoc.LoadPDF(filepath)
+    If Not Nothing Is pdfDoc Then
+      GetPDFPageCount = pdfDoc.PageCount
+    Else
+      GetPDFPageCount = 0
+    End If
+    pdfDoc.Dispose()
+  End Function
+
   Public Shared Function GetPageFromPDF(ByVal filename As String, ByVal destPath As String, ByRef PageNumber As Integer, Optional ByVal DPI As Integer = RENDER_DPI, Optional ByVal Password As String = "", Optional ByVal searchText As String = "", Optional ByVal searchDir As SearchDirection = 0) As String
     GetPageFromPDF = ""
     Dim pdfDoc As New PDFLibNet.PDFWrapper
@@ -38,7 +49,7 @@ Public Class AFPDFLibUtil
               PageNumber = pdfDoc.SearchResults(0).Page
               searchResults = GetAllSearchResults(filename, searchText, PageNumber)
             Else
-              searchResults = SearchForNextText(pdfDoc, filename, searchText, PageNumber, searchDir)
+              searchResults = SearchForNextText(filename, searchText, PageNumber, searchDir)
               If searchResults.Count > 0 Then
                 PageNumber = searchResults(0).Page
               End If
@@ -48,7 +59,7 @@ Public Class AFPDFLibUtil
               PageNumber = pdfDoc.SearchResults(0).Page
               searchResults = GetAllSearchResults(filename, searchText, PageNumber)
             Else
-              searchResults = SearchForNextText(pdfDoc, filename, searchText, PageNumber, searchDir)
+              searchResults = SearchForNextText(filename, searchText, PageNumber, searchDir)
               If searchResults.Count > 0 Then
                 PageNumber = searchResults(0).Page
               End If
@@ -58,7 +69,7 @@ Public Class AFPDFLibUtil
       End If
       Dim outGuid As Guid = Guid.NewGuid()
       Dim output As String = destPath & "\" & outGuid.ToString & ".png"
-      pdfDoc.ExportJpg(output, PageNumber, PageNumber, DPI, 90)
+      pdfDoc.ExportJpg(output, PageNumber, PageNumber, DPI, 95)
       While (pdfDoc.IsJpgBusy)
         Threading.Thread.Sleep(50)
       End While
@@ -66,15 +77,15 @@ Public Class AFPDFLibUtil
       'Dim bmp As Bitmap = pdfPage.GetBitmap(DPI, True)
       'bmp.Save(output, System.Drawing.Imaging.ImageFormat.Png)
       'bmp.Dispose()
-      pdfDoc.Dispose()
       GetPageFromPDF = output
       If searchResults.Count > 0 Then
         GetPageFromPDF = HighlightSearchCriteria(output, DPI, searchResults)
       End If
+      pdfDoc.Dispose()
     End If
   End Function
 
-  Public Shared Function GetPageFromPDFNoSearch(ByVal filename As String, ByVal destPath As String, ByRef PageNumber As Integer, Optional ByVal DPI As Integer = RENDER_DPI, Optional ByVal Password As String = "", Optional ByVal searchText As String = "", Optional ByVal searchDir As SearchDirection = 0) As String
+  Public Shared Function GetPageFromPDFNoSearch(ByVal filename As String, ByVal destPath As String, ByRef PageNumber As Integer, Optional ByVal DPI As Integer = RENDER_DPI, Optional ByVal Password As String = "") As String
     GetPageFromPDFNoSearch = ""
     Dim pdfDoc As New PDFLibNet.PDFWrapper
     pdfDoc.LoadPDF(filename)
@@ -90,25 +101,37 @@ Public Class AFPDFLibUtil
     End If
   End Function
 
-  Public Shared Function SearchForNextText(ByVal pdfDoc As PDFLibNet.PDFWrapper, ByVal filename As String, ByVal searchText As String, ByVal currentPage As Integer, ByVal searchDir As SearchDirection) As List(Of PDFLibNet.PDFSearchResult)
+  Public Shared Function SearchForNextText(ByVal filename As String, ByVal searchText As String, ByVal currentPage As Integer, ByVal searchDir As SearchDirection) As List(Of PDFLibNet.PDFSearchResult)
     SearchForNextText = New List(Of PDFLibNet.PDFSearchResult)
+    Dim pdfDoc As New PDFLibNet.PDFWrapper
+    pdfDoc.LoadPDF(filename)
     If Not Nothing Is pdfDoc Then
       pdfDoc.SearchCaseSensitive = False
-SearchPDF:
-      Dim lFound As Integer = 0
-      Dim nextPageFound As Integer = 0
+      pdfDoc.CurrentPage = currentPage
+      Dim iFound As Integer = 0
       If searchDir = SearchDirection.Forwards Then
-        lFound = pdfDoc.FindNext(searchText)
+        iFound = pdfDoc.FindFirst(searchText, PDFLibNet.PDFSearchOrder.PDFSearchFromCurrent, False, False)
       ElseIf searchDir = SearchDirection.Backwards Then
-        lFound = pdfDoc.FindPrevious(searchText)
+        iFound = pdfDoc.FindFirst(searchText, PDFLibNet.PDFSearchOrder.PDFSearchFromCurrent, True, False)
       End If
-      If lFound > 0 Then
-        If (pdfDoc.SearchResults(0).Page > currentPage And searchDir = SearchDirection.Forwards) _
-        Or (pdfDoc.SearchResults(0).Page < currentPage And searchDir = SearchDirection.Backwards) Then
-          nextPageFound = pdfDoc.SearchResults(0).Page
-          Return GetAllSearchResults(filename, searchText, nextPageFound)
-        Else
-          GoTo SearchPDF
+      If iFound > 0 Then
+SearchPDF:
+        Dim lFound As Integer = 0
+        Dim nextPageFound As Integer = 0
+        If searchDir = SearchDirection.Forwards Then
+          lFound = pdfDoc.FindNext(searchText)
+        ElseIf searchDir = SearchDirection.Backwards Then
+          lFound = pdfDoc.FindPrevious(searchText)
+        End If
+        If lFound > 0 Then
+          If (pdfDoc.SearchResults(0).Page > currentPage And searchDir = SearchDirection.Forwards) _
+          Or (pdfDoc.SearchResults(0).Page < currentPage And searchDir = SearchDirection.Backwards) Then
+            nextPageFound = pdfDoc.SearchResults(0).Page
+            pdfDoc.Dispose()
+            Return GetAllSearchResults(filename, searchText, nextPageFound)
+          Else
+            GoTo SearchPDF
+          End If
         End If
       End If
     End If
@@ -138,18 +161,21 @@ SearchPDF:
         Next
 FindLoop:
         lFound = pdfDoc.FindNext(searchText)
-        If lFound > 0 And (pageNumber = 0 Or pdfDoc.SearchResults(0).Page = pageNumber) Then
-          For Each item As PDFLibNet.PDFSearchResult In pdfDoc.SearchResults
-            If (pageNumber = 0 Or item.Page = pageNumber) Then
-              GetAllSearchResults.Add(item)
-            End If
-          Next
+        If lFound > 0 Then
+          If (pageNumber = 0 Or pdfDoc.SearchResults(0).Page = pageNumber) Then
+            For Each item As PDFLibNet.PDFSearchResult In pdfDoc.SearchResults
+              If (pageNumber = 0 Or item.Page = pageNumber) Then
+                GetAllSearchResults.Add(item)
+              End If
+            Next
+          End If
         Else
           pdfDoc.Dispose()
           Exit Function
         End If
         GoTo FindLoop
       End If
+      pdfDoc.Dispose()
     End If
   End Function
 
@@ -179,82 +205,26 @@ FindLoop:
 
   End Function
 
-  Public Shared Function GetJPGFromPDFDoc(ByRef pdfDoc As PDFLibNet.PDFWrapper, ByVal destPath As String, ByVal PageNumber As Integer, ByVal DPI As Integer) As String
-    GetJPGFromPDFDoc = ""
-    Dim outGuid As Guid = Guid.NewGuid()
-    Dim output As String = destPath & "\" & outGuid.ToString & ".jpg"
-    pdfDoc.ExportJpg(output, PageNumber, PageNumber, DPI, 90)
-    While (pdfDoc.IsJpgBusy)
-      Threading.Thread.Sleep(50)
-    End While
-    pdfDoc.Dispose()
-  End Function
-
-  Public Shared Function GetOptimalDPI(ByRef pdfDoc As PDFLibNet.PDFWrapper, ByRef oSize As Drawing.Size) As Integer
+  Public Shared Function GetOptimalDPI(ByVal filename As String, ByVal pageNumber As Integer, ByRef oSize As Drawing.Size) As Integer
     GetOptimalDPI = 0
+    Dim pdfDoc As New PDFLibNet.PDFWrapper
+    pdfDoc.LoadPDF(filename)
     If pdfDoc IsNot Nothing Then
-      If pdfDoc.PageWidth > 0 And pdfDoc.PageHeight > 0 Then
-        Dim DPIScalePercent As Single = 72 / pdfDoc.RenderDPI
+      If pdfDoc.Pages(pageNumber).Width > 0 And pdfDoc.Pages(pageNumber).Height > 0 Then
         Dim picHeight As Integer = oSize.Height
         Dim picWidth As Integer = oSize.Width
-        Dim docHeight As Integer = pdfDoc.PageHeight
-        Dim docWidth As Integer = pdfDoc.PageWidth
-        Dim dummyPicBox As New PictureBox
-        dummyPicBox.Size = oSize
-        If (picWidth > picHeight And docWidth < docHeight) Or (picWidth < picHeight And docWidth > docHeight) Then
-          dummyPicBox.Width = picHeight
-          dummyPicBox.Height = picWidth
-        End If
-        Dim HScale As Single = dummyPicBox.Width / (pdfDoc.PageWidth * DPIScalePercent)
-        Dim VScale As Single = dummyPicBox.Height / (pdfDoc.PageHeight * DPIScalePercent)
-        dummyPicBox.Dispose()
+        Dim docHeight As Integer = pdfDoc.Pages(pageNumber).Height
+        Dim docWidth As Integer = pdfDoc.Pages(pageNumber).Width
+        Dim HScale As Single = oSize.Width / docWidth
+        Dim VScale As Single = oSize.Height / docHeight
         If VScale > HScale Then
-          GetOptimalDPI = Math.Floor(72 * HScale)
+          GetOptimalDPI = Math.Floor(253 * HScale)
         Else
-          GetOptimalDPI = Math.Floor(72 * VScale)
+          GetOptimalDPI = Math.Floor(253 * VScale)
         End If
       End If
+      pdfDoc.Dispose()
     End If
-  End Function
-
-  Public Shared Function GetImageFromPDF(ByRef pdfDoc As PDFLibNet.PDFWrapper, ByVal PageNumber As Integer, Optional ByVal DPI As Integer = RENDER_DPI) As System.Drawing.Image
-    GetImageFromPDF = Nothing
-    Try
-      If pdfDoc IsNot Nothing Then
-        pdfDoc.CurrentPage = PageNumber
-        pdfDoc.CurrentX = 0
-        pdfDoc.CurrentY = 0
-        If DPI < 1 Then DPI = RENDER_DPI
-        pdfDoc.RenderDPI = DPI
-        Dim oPictureBox As New PictureBox
-        pdfDoc.RenderPage(oPictureBox.Handle)
-        GetImageFromPDF = Render(pdfDoc)
-        oPictureBox.Dispose()
-      End If
-    Catch ex As Exception
-      Throw ex
-    End Try
-  End Function
-
-  Public Shared Function Render(ByRef pdfDoc As PDFLibNet.PDFWrapper) As System.Drawing.Bitmap
-    Try
-      If pdfDoc IsNot Nothing Then
-        Dim backbuffer As System.Drawing.Bitmap = New Bitmap(pdfDoc.PageWidth, pdfDoc.PageHeight)
-        pdfDoc.ClientBounds = New Rectangle(0, 0, pdfDoc.PageWidth, pdfDoc.PageHeight)
-        Dim g As Graphics = Graphics.FromImage(backbuffer)
-        Using g
-          Dim hdc As IntPtr = g.GetHdc()
-          pdfDoc.DrawPageHDC(hdc)
-          g.ReleaseHdc()
-        End Using
-        g.Dispose()
-        Return backbuffer
-      End If
-    Catch ex As Exception
-      Throw ex
-      Return Nothing
-    End Try
-    Return Nothing
   End Function
 
   Public Shared Function BuildHTMLBookmarks(ByRef pdfDoc As PDFLibNet.PDFWrapper, Optional ByVal pageNumberOnly As Boolean = False) As String
