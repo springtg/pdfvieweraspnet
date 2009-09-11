@@ -191,7 +191,6 @@ Partial Public Class WebUserControl1
     parameterHash.Add("UseXPDF", True)
   End Sub
 
-
   Private Sub UpdatePageLabel()
     PageLabel.Text = "Page " & parameterHash("CurrentPageNumber") & " of " & parameterHash("PDFPageCount")
     PageNumberTextBox.Text = parameterHash("CurrentPageNumber")
@@ -217,8 +216,6 @@ Partial Public Class WebUserControl1
     If Not Nothing Is pdfDoc Then
       bookmarkHtml = AFPDFLibUtil.BuildHTMLBookmarks(pdfDoc, parameterHash("PagesOnly"))
       pdfDoc.Dispose()
-    Else
-      bookmarkHtml = iTextSharpUtil.BuildHTMLBookmarks(parameterHash("PDFFileName"), parameterHash("Password"), parameterHash("PagesOnly"), parameterHash("PDFPageCount"))
     End If
     BookmarkContentCell.Text = bookmarkHtml
     If Regex.IsMatch(bookmarkHtml, "\<\!--PageNumberOnly--\>") Then
@@ -255,22 +252,17 @@ Partial Public Class WebUserControl1
     Dim indexNum As Integer = (parameterHash("CurrentPageNumber") - 1)
     Dim numRotation As Integer = parameterHash("RotationPage")(indexNum)
     Dim imageLocation As String
-    If parameterHash("UseXPDF") = True Then
-      If doSearch = False Then
-        imageLocation = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath, parameterHash("CurrentPageNumber"), parameterHash("DPI"), parameterHash("Password"), numRotation)
-      Else
-        imageLocation = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath _
-                                                 , parameterHash("CurrentPageNumber") _
-                                                 , parameterHash("DPI") _
-                                                 , parameterHash("Password") _
-                                                 , numRotation, parameterHash("SearchText") _
-                                                 , parameterHash("SearchDirection") _
-                                                 )
-        UpdatePageLabel()
-      End If
-
+    If doSearch = False Then
+      imageLocation = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath, parameterHash("CurrentPageNumber"), parameterHash("DPI"), parameterHash("Password"), numRotation)
     Else
-      imageLocation = ASPPDFLib.GetImageFromFileGS(parameterHash("PDFFileName"), destPath, parameterHash("CurrentPageNumber"), parameterHash("DPI"), parameterHash("Password"), numRotation)
+      imageLocation = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath _
+                                               , parameterHash("CurrentPageNumber") _
+                                               , parameterHash("DPI") _
+                                               , parameterHash("Password") _
+                                               , numRotation, parameterHash("SearchText") _
+                                               , parameterHash("SearchDirection") _
+                                               )
+      UpdatePageLabel()
     End If
     ImageUtil.DeleteFile(parameterHash("CurrentImageFileName"))
     parameterHash("CurrentImageFileName") = imageLocation
@@ -291,13 +283,13 @@ Partial Public Class WebUserControl1
 
   Protected Sub FitToScreenButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles FitToScreenButton.Click
     Dim panelsize As Drawing.Size = New Size(HiddenBrowserWidth.Value * panelWidthFactor, HiddenBrowserHeight.Value * panelHeightFactor)
-    parameterHash("DPI") = iTextSharpUtil.GetOptimalDPI(parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize)
+    parameterHash("DPI") = AFPDFLibUtil.GetOptimalDPI(parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize)
     DisplayCurrentPage()
   End Sub
 
   Protected Sub FitToWidthButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles FitToWidthButton.Click
     Dim panelsize As Drawing.Size = New Size(HiddenBrowserWidth.Value * panelWidthFactor, HiddenBrowserHeight.Value * 4)
-    parameterHash("DPI") = iTextSharpUtil.GetOptimalDPI(parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize)
+    parameterHash("DPI") = AFPDFLibUtil.GetOptimalDPI(parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize)
     DisplayCurrentPage()
   End Sub
 
