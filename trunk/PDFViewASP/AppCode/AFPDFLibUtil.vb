@@ -69,14 +69,10 @@ Public Class AFPDFLibUtil
       End If
       Dim outGuid As Guid = Guid.NewGuid()
       Dim output As String = destPath & "\" & outGuid.ToString & ".png"
-      pdfDoc.ExportJpg(output, PageNumber, PageNumber, DPI, 95)
-      While (pdfDoc.IsJpgBusy)
-        Threading.Thread.Sleep(50)
-      End While
-      'Dim pdfPage As PDFLibNet.PDFPage = pdfDoc.Pages(PageNumber)
-      'Dim bmp As Bitmap = pdfPage.GetBitmap(DPI, True)
-      'bmp.Save(output, System.Drawing.Imaging.ImageFormat.Png)
-      'bmp.Dispose()
+      Dim pdfPage As PDFLibNet.PDFPage = pdfDoc.Pages(PageNumber)
+      Dim bmp As Bitmap = pdfPage.GetBitmap(DPI, True)
+      bmp.Save(output, System.Drawing.Imaging.ImageFormat.Png)
+      bmp.Dispose()
       GetPageFromPDF = output
       If searchResults.Count > 0 Then
         GetPageFromPDF = HighlightSearchCriteria(output, DPI, searchResults)
@@ -91,7 +87,7 @@ Public Class AFPDFLibUtil
     pdfDoc.LoadPDF(filename)
     If Not Nothing Is pdfDoc Then
       Dim outGuid As Guid = Guid.NewGuid()
-      Dim output As String = destPath & "\" & outGuid.ToString & ".png"
+      Dim output As String = destPath & "\" & outGuid.ToString & ".jpg"
       pdfDoc.ExportJpg(output, PageNumber, PageNumber, DPI, 90)
       While (pdfDoc.IsJpgBusy)
         Threading.Thread.Sleep(50)
@@ -195,14 +191,13 @@ FindLoop:
     Next
 
     Dim outputPath As String = Regex.Replace(fileName, "(^.+\\).+$", "$1")
-    Dim outputFileName As String = outputPath & Guid.NewGuid().ToString & ".jpg"
+    Dim outputFileName As String = outputPath & Guid.NewGuid().ToString & ".png"
     bmp.Save(outputFileName, Imaging.ImageFormat.Jpeg)
     bmp.Dispose()
-    ImageUtil.DeleteFile(fileName)
-    HighlightSearchCriteria = outputFileName
     gBmp.Dispose()
     blueBrush.Dispose()
-
+    ImageUtil.DeleteFile(fileName)
+    HighlightSearchCriteria = outputFileName
   End Function
 
   Public Shared Function GetOptimalDPI(ByVal filename As String, ByVal pageNumber As Integer, ByRef oSize As Drawing.Size) As Integer
