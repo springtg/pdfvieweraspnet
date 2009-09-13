@@ -22,6 +22,21 @@ Public Class AFPDFLibUtil
     pdfDoc.Dispose()
   End Function
 
+  Public Shared Function GetSearchResults(ByVal filename As String, ByVal searchText As String, Optional ByVal Password As String = "") As List(Of PDFLibNet.PDFSearchResult)
+    GetSearchResults = New List(Of PDFLibNet.PDFSearchResult)
+    Dim pdfDoc As New PDFLibNet.PDFWrapper
+    pdfDoc.LoadPDF(filename)
+    If Not Nothing Is pdfDoc Then
+      pdfDoc.SearchCaseSensitive = False
+      Dim lFound As Integer = 0
+      lFound = pdfDoc.FindText(searchText, 1, PDFLibNet.PDFSearchOrder.PDFSearchFromdBegin, False, False, True, True, False)
+      If lFound > 0 Then
+        Return pdfDoc.SearchResults
+      End If
+      pdfDoc.Dispose()
+    End If
+  End Function
+
   Public Shared Function GetPageFromPDF(ByVal filename As String, ByVal destPath As String, ByRef PageNumber As Integer, Optional ByVal DPI As Integer = RENDER_DPI, Optional ByVal Password As String = "", Optional ByVal searchText As String = "", Optional ByVal searchDir As SearchDirection = 0) As String
     GetPageFromPDF = ""
     Dim pdfDoc As New PDFLibNet.PDFWrapper
@@ -29,54 +44,43 @@ Public Class AFPDFLibUtil
     pdfDoc.LoadPDF(filename)
     If Not Nothing Is pdfDoc Then
       pdfDoc.CurrentPage = PageNumber
-      pdfDoc.SearchCaseSensitive = False
       Dim searchResults As New List(Of PDFLibNet.PDFSearchResult)
       If searchText <> "" Then
-        Dim lFound As Integer = 0
-        If searchDir = SearchDirection.FromBeginning Then
-          lFound = pdfDoc.FindFirst(searchText, PDFLibNet.PDFSearchOrder.PDFSearchFromdBegin, False, False)
-        ElseIf searchDir = SearchDirection.Forwards Then
-          lFound = pdfDoc.FindFirst(searchText, PDFLibNet.PDFSearchOrder.PDFSearchFromCurrent, False, False)
-        ElseIf searchDir = SearchDirection.Backwards Then
-          lFound = pdfDoc.FindFirst(searchText, PDFLibNet.PDFSearchOrder.PDFSearchFromCurrent, True, False)
-        End If
-        If lFound > 0 Then
-          If searchDir = SearchDirection.FromBeginning Then
-            PageNumber = pdfDoc.SearchResults(0).Page
-            searchResults = GetAllSearchResults(filename, searchText, PageNumber)
-          ElseIf searchDir = SearchDirection.Forwards Then
-            If pdfDoc.SearchResults(0).Page > PageNumber Then
-              PageNumber = pdfDoc.SearchResults(0).Page
-              searchResults = GetAllSearchResults(filename, searchText, PageNumber)
-            Else
-              searchResults = SearchForNextText(filename, searchText, PageNumber, searchDir)
-              If searchResults.Count > 0 Then
-                PageNumber = searchResults(0).Page
+        searchResults = GetSearchResults(filename, searchText, Password)
+        If Not Nothing Is searchResults Then
+          Dim lastPageNum As Integer = PageNumber
+          If searchDir = SearchDirection.Backwards Then
+            For Each item As PDFLibNet.PDFSearchResult In searchResults
+              If item.Page < PageNumber Then
+                lastPageNum = item.Page
+              Else
+                Exit For
               End If
-            End If
-          ElseIf searchDir = SearchDirection.Backwards Then
-            If pdfDoc.SearchResults(0).Page < PageNumber Then
-              PageNumber = pdfDoc.SearchResults(0).Page
-              searchResults = GetAllSearchResults(filename, searchText, PageNumber)
-            Else
-              searchResults = SearchForNextText(filename, searchText, PageNumber, searchDir)
-              If searchResults.Count > 0 Then
-                PageNumber = searchResults(0).Page
+            Next
+          Else
+            For Each item As PDFLibNet.PDFSearchResult In searchResults
+              If item.Page > PageNumber And searchDir = SearchDirection.Forwards Then
+                lastPageNum = item.Page
+                Exit For
+              ElseIf item.Page > 0 And searchDir = SearchDirection.FromBeginning Then
+                lastPageNum = item.Page
+                Exit For
               End If
-            End If
+            Next
           End If
+          PageNumber = lastPageNum
         End If
       End If
       Dim outGuid As Guid = Guid.NewGuid()
       Dim output As String = destPath & "\" & outGuid.ToString & ".png"
       Dim pdfPage As PDFLibNet.PDFPage = pdfDoc.Pages(PageNumber)
       Dim bmp As Bitmap = pdfPage.GetBitmap(DPI, True)
+      If searchResults.Count > 0 Then
+        HighlightSearchCriteria(bmp, DPI, searchResults, PageNumber)
+      End If
       bmp.Save(output, System.Drawing.Imaging.ImageFormat.Png)
       bmp.Dispose()
       GetPageFromPDF = output
-      If searchResults.Count > 0 Then
-        GetPageFromPDF = HighlightSearchCriteria(output, DPI, searchResults)
-      End If
       pdfDoc.Dispose()
     End If
   End Function
@@ -97,88 +101,8 @@ Public Class AFPDFLibUtil
     End If
   End Function
 
-  Public Shared Function SearchForNextText(ByVal filename As String, ByVal searchText As String, ByVal currentPage As Integer, ByVal searchDir As SearchDirection) As List(Of PDFLibNet.PDFSearchResult)
-    SearchForNextText = New List(Of PDFLibNet.PDFSearchResult)
-    Dim pdfDoc As New PDFLibNet.PDFWrapper
-    pdfDoc.LoadPDF(filename)
-    If Not Nothing Is pdfDoc Then
-      pdfDoc.SearchCaseSensitive = False
-      pdfDoc.CurrentPage = currentPage
-      Dim iFound As Integer = 0
-      If searchDir = SearchDirection.Forwards Then
-        iFound = pdfDoc.FindFirst(searchText, PDFLibNet.PDFSearchOrder.PDFSearchFromCurrent, False, False)
-      ElseIf searchDir = SearchDirection.Backwards Then
-        iFound = pdfDoc.FindFirst(searchText, PDFLibNet.PDFSearchOrder.PDFSearchFromCurrent, True, False)
-      End If
-      If iFound > 0 Then
-SearchPDF:
-        Dim lFound As Integer = 0
-        Dim nextPageFound As Integer = 0
-        If searchDir = SearchDirection.Forwards Then
-          lFound = pdfDoc.FindNext(searchText)
-        ElseIf searchDir = SearchDirection.Backwards Then
-          lFound = pdfDoc.FindPrevious(searchText)
-        End If
-        If lFound > 0 Then
-          If (pdfDoc.SearchResults(0).Page > currentPage And searchDir = SearchDirection.Forwards) _
-          Or (pdfDoc.SearchResults(0).Page < currentPage And searchDir = SearchDirection.Backwards) Then
-            nextPageFound = pdfDoc.SearchResults(0).Page
-            pdfDoc.Dispose()
-            Return GetAllSearchResults(filename, searchText, nextPageFound)
-          Else
-            GoTo SearchPDF
-          End If
-        End If
-      End If
-    End If
-  End Function
+  Public Shared Sub HighlightSearchCriteria(ByRef bmp As Drawing.Bitmap, ByVal DPI As Integer, ByRef searchResults As List(Of PDFLibNet.PDFSearchResult), ByVal pageNumber As Integer)
 
-  Public Shared Function GetAllSearchResults(ByVal filename As String, ByVal searchText As String, Optional ByVal pageNumber As Integer = 0, Optional ByVal searchBackwards As Boolean = False) As List(Of PDFLibNet.PDFSearchResult)
-    GetAllSearchResults = New List(Of PDFLibNet.PDFSearchResult)
-    Dim pdfDoc As New PDFLibNet.PDFWrapper
-    pdfDoc.LoadPDF(filename)
-    If Not Nothing Is pdfDoc Then
-      pdfDoc.SearchCaseSensitive = False
-      Dim lFound As Integer = 0
-      pdfDoc.CurrentPage = pageNumber
-      If searchBackwards = True And (pageNumber) <= pdfDoc.PageCount Then
-        lFound = pdfDoc.FindFirst(searchText, PDFLibNet.PDFSearchOrder.PDFSearchFromCurrent, True, False)
-      ElseIf (pageNumber) > 1 Then
-        lFound = pdfDoc.FindFirst(searchText, PDFLibNet.PDFSearchOrder.PDFSearchFromCurrent, False, False)
-      Else
-        lFound = pdfDoc.FindFirst(searchText, PDFLibNet.PDFSearchOrder.PDFSearchFromdBegin, False, False)
-      End If
-
-      If lFound > 0 Then
-        For Each item As PDFLibNet.PDFSearchResult In pdfDoc.SearchResults
-          If (pageNumber = 0 Or item.Page = pageNumber) Then
-            GetAllSearchResults.Add(item)
-          End If
-        Next
-FindLoop:
-        lFound = pdfDoc.FindNext(searchText)
-        If lFound > 0 Then
-          If (pageNumber = 0 Or pdfDoc.SearchResults(0).Page = pageNumber) Then
-            For Each item As PDFLibNet.PDFSearchResult In pdfDoc.SearchResults
-              If (pageNumber = 0 Or item.Page = pageNumber) Then
-                GetAllSearchResults.Add(item)
-              End If
-            Next
-          End If
-        Else
-          pdfDoc.Dispose()
-          Exit Function
-        End If
-        GoTo FindLoop
-      End If
-      pdfDoc.Dispose()
-    End If
-  End Function
-
-  Public Shared Function HighlightSearchCriteria(ByVal fileName As String, ByVal DPI As Integer, ByRef searchResults As List(Of PDFLibNet.PDFSearchResult)) As String
-    HighlightSearchCriteria = fileName
-
-    Dim bmp As New Bitmap(fileName)
     Dim gBmp As Graphics = Graphics.FromImage(bmp)
     Dim scale As Single = DPI / 72
 
@@ -187,18 +111,15 @@ FindLoop:
     Dim blueBrush As Brush = New SolidBrush(blue)
 
     For Each searchItem In searchResults
-      gBmp.FillRectangle(blueBrush, searchItem.Position.X * scale, searchItem.Position.Y * scale, searchItem.Position.Width * scale, searchItem.Position.Height * scale)
+      If searchItem.Page = pageNumber Then
+        gBmp.FillRectangle(blueBrush, searchItem.Position.X * scale, searchItem.Position.Y * scale, searchItem.Position.Width * scale, searchItem.Position.Height * scale)
+      End If
     Next
 
-    Dim outputPath As String = Regex.Replace(fileName, "(^.+\\).+$", "$1")
-    Dim outputFileName As String = outputPath & Guid.NewGuid().ToString & ".png"
-    bmp.Save(outputFileName, Imaging.ImageFormat.Jpeg)
-    bmp.Dispose()
     gBmp.Dispose()
     blueBrush.Dispose()
-    ImageUtil.DeleteFile(fileName)
-    HighlightSearchCriteria = outputFileName
-  End Function
+
+  End Sub
 
   Public Shared Function GetOptimalDPI(ByVal filename As String, ByVal pageNumber As Integer, ByRef oSize As Drawing.Size) As Integer
     GetOptimalDPI = 0
