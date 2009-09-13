@@ -188,7 +188,6 @@ Partial Public Class WebUserControl1
     parameterHash.Add("Bookmarks", "")
     parameterHash.Add("SearchText", "")
     parameterHash.Add("SearchDirection", AFPDFLibUtil.SearchDirection.FromBeginning)
-    parameterHash.Add("UseXPDF", True)
   End Sub
 
   Private Sub UpdatePageLabel()
@@ -212,7 +211,7 @@ Partial Public Class WebUserControl1
         pdfDoc.Dispose()
       End If
     End Try
-    Dim bookmarkHtml As String
+    Dim bookmarkHtml As String = ""
     If Not Nothing Is pdfDoc Then
       bookmarkHtml = AFPDFLibUtil.BuildHTMLBookmarks(pdfDoc, parameterHash("PagesOnly"))
       pdfDoc.Dispose()
