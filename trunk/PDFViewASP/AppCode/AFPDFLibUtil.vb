@@ -28,7 +28,7 @@ Public Class AFPDFLibUtil
     pdfDoc.LoadPDF(filename)
     If Not Nothing Is pdfDoc Then
       Dim lFound As Integer = 0
-      lFound = pdfDoc.FindText(searchText, pageNum, PDFLibNet.PDFSearchOrder.PDFSearchFromCurrent, False, If(searchDir = SearchDirection.Backwards, True, False), False, False, False, False)
+      lFound = pdfDoc.FindText(searchText, pageNum, PDFLibNet.PDFSearchOrder.PDFSearchFromCurrent, False, If(searchDir = SearchDirection.Backwards, True, False), False, False, False, True)
       If lFound > 0 Then
         Return pdfDoc.SearchResults
       End If
