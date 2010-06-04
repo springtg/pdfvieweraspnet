@@ -1,25 +1,28 @@
 <publishData>
   <publishTarget publishUrl="C:\Inetpub\wwwroot\PDFView\">
     <file relUrl="images/SearchPrevious.png" publishTime="09/11/2009 06:44:56" />
+    <file relUrl="bin/PDFLibCmdLine.xml" publishTime="06/03/2010 05:45:17" />
     <file relUrl="images/Undo_24x24.png" publishTime="08/30/2009 10:58:03" />
     <file relUrl="Web.config" publishTime="09/11/2009 10:09:46" />
     <file relUrl="PDFViewer.ascx" publishTime="09/13/2009 10:14:52" />
     <file relUrl="images/FitToScreen.png" publishTime="09/07/2009 11:22:53" />
-    <file relUrl="bin/PDFViewASP.xml" publishTime="09/15/2009 05:56:55" />
-    <file relUrl="bin/PDFViewASP.dll" publishTime="09/15/2009 05:56:55" />
+    <file relUrl="bin/PDFViewASP.xml" publishTime="06/03/2010 18:44:56" />
+    <file relUrl="bin/PDFViewASP.dll" publishTime="06/03/2010 18:44:56" />
     <file relUrl="images/Redo_24x24.png" publishTime="08/30/2009 10:58:03" />
-    <file relUrl="bin/PDFViewASP.pdb" publishTime="09/15/2009 05:56:55" />
+    <file relUrl="bin/PDFViewASP.pdb" publishTime="06/03/2010 18:44:56" />
     <file relUrl="bin/StatefullScrollPanel.dll" publishTime="09/11/2009 13:27:21" />
     <file relUrl="lib/StatefullScrollPanel.dll" publishTime="09/11/2009 13:27:21" />
     <file relUrl="images/Previous_24x24.png" publishTime="08/30/2009 10:58:03" />
-    <file relUrl="bin/PDFLibNet.dll" publishTime="09/15/2009 05:55:05" />
+    <file relUrl="bin/PDFLibNet.dll" publishTime="09/16/2009 06:14:45" />
+    <file relUrl="bin/PDFLibCmdLine.pdb" publishTime="06/03/2010 05:45:17" />
     <file relUrl="images/Next_24x24.png" publishTime="08/30/2009 10:58:03" />
-    <file relUrl="images/FitToWidth.png" publishTime="09/07/2009 11:22:53" />
+    <file relUrl="bin/PDFLibCmdLine.exe" publishTime="06/03/2010 05:45:17" />
+    <file relUrl="Default.aspx" publishTime="08/30/2009 10:58:03" />
     <file relUrl="images/Zoom In_24x24.png" publishTime="08/30/2009 10:58:03" />
     <file relUrl="images/Search_24x24.png" publishTime="09/07/2009 11:22:53" />
     <file relUrl="images/SearchNext.png" publishTime="09/11/2009 06:44:56" />
-    <file relUrl="Default.aspx" publishTime="08/30/2009 10:58:03" />
-    <file relUrl="lib/PDFLibNet.dll" publishTime="09/15/2009 05:55:05" />
+    <file relUrl="images/FitToWidth.png" publishTime="09/07/2009 11:22:53" />
+    <file relUrl="lib/PDFLibNet.dll" publishTime="09/16/2009 06:14:45" />
     <file relUrl="images/ActualSize.png" publishTime="09/07/2009 11:22:53" />
     <file relUrl="images/Zoom Out_24x24.png" publishTime="08/30/2009 10:58:03" />
   </publishTarget>

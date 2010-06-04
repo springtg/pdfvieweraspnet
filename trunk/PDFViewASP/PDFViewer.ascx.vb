@@ -187,7 +187,7 @@ Partial Public Class WebUserControl1
     parameterHash.Add("Rotation", New List(Of Integer))
     parameterHash.Add("Bookmarks", "")
     parameterHash.Add("SearchText", "")
-    parameterHash.Add("SearchDirection", AFPDFLibUtil.SearchDirection.FromBeginning)
+    parameterHash.Add("SearchDirection", ExternalPDFLib.SearchDirection.FromBeginning)
   End Sub
 
   Private Sub UpdatePageLabel()
@@ -196,26 +196,28 @@ Partial Public Class WebUserControl1
   End Sub
 
   Private Sub InitPageRange()
-    parameterHash("PDFPageCount") = ImageUtil.GetImageFrameCount(parameterHash("PDFFileName"), parameterHash("Password"))
+    'parameterHash("PDFPageCount") = ImageUtil.GetImageFrameCount(parameterHash("PDFFileName"), parameterHash("Password"))
+    parameterHash("PDFPageCount") = ExternalPDFLib.GetPDFPageCount(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("Password"))
     parameterHash("CurrentPageNumber") = 1
   End Sub
 
   Private Sub InitBookmarks()
-    Dim pdfDoc As PDFLibNet.PDFWrapper
-    Try
-      pdfDoc = New PDFLibNet.PDFWrapper
-      pdfDoc.LoadPDF(parameterHash("PDFFileName"))
-    Catch ex As Exception
-      'pdfDoc failed
-      If Not Nothing Is pdfDoc Then
-        pdfDoc.Dispose()
-      End If
-    End Try
+    'Dim pdfDoc As PDFLibNet.PDFWrapper
+    'Try
+    '  pdfDoc = New PDFLibNet.PDFWrapper
+    '  pdfDoc.LoadPDF(parameterHash("PDFFileName"))
+    'Catch ex As Exception
+    '  'pdfDoc failed
+    '  If Not Nothing Is pdfDoc Then
+    '    pdfDoc.Dispose()
+    '  End If
+    'End Try
     Dim bookmarkHtml As String = ""
-    If Not Nothing Is pdfDoc Then
-      bookmarkHtml = AFPDFLibUtil.BuildHTMLBookmarks(pdfDoc, parameterHash("PagesOnly"))
-      pdfDoc.Dispose()
-    End If
+    'If Not Nothing Is pdfDoc Then
+    ' bookmarkHtml = AFPDFLibUtil.BuildHTMLBookmarks(pdfDoc, parameterHash("PagesOnly"))
+    bookmarkHtml = ExternalPDFLib.BuildHTMLBookmarks(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("PagesOnly"))
+    'pdfDoc.Dispose()
+    'End If
     BookmarkContentCell.Text = bookmarkHtml
     If Regex.IsMatch(bookmarkHtml, "\<\!--PageNumberOnly--\>") Then
       parameterHash("PagesOnly") = True
@@ -251,10 +253,22 @@ Partial Public Class WebUserControl1
     Dim indexNum As Integer = (parameterHash("CurrentPageNumber") - 1)
     Dim numRotation As Integer = parameterHash("RotationPage")(indexNum)
     Dim imageLocation As String
+    'If doSearch = False Then
+    '  imageLocation = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath, parameterHash("CurrentPageNumber"), parameterHash("DPI"), parameterHash("Password"), numRotation)
+    'Else
+    '  imageLocation = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath _
+    '                                           , parameterHash("CurrentPageNumber") _
+    '                                           , parameterHash("DPI") _
+    '                                           , parameterHash("Password") _
+    '                                           , numRotation, parameterHash("SearchText") _
+    '                                           , parameterHash("SearchDirection") _
+    '                                           )
+    '  UpdatePageLabel()
+    'End If
     If doSearch = False Then
-      imageLocation = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath, parameterHash("CurrentPageNumber"), parameterHash("DPI"), parameterHash("Password"), numRotation)
+      imageLocation = ExternalPDFLib.GetPageFromPDF(Request.MapPath("bin"), parameterHash("PDFFileName"), destPath, parameterHash("CurrentPageNumber"), parameterHash("DPI"), parameterHash("Password"), numRotation)
     Else
-      imageLocation = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath _
+      imageLocation = ExternalPDFLib.GetPageFromPDF(Request.MapPath("bin"), parameterHash("PDFFileName"), destPath _
                                                , parameterHash("CurrentPageNumber") _
                                                , parameterHash("DPI") _
                                                , parameterHash("Password") _
@@ -282,13 +296,13 @@ Partial Public Class WebUserControl1
 
   Protected Sub FitToScreenButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles FitToScreenButton.Click
     Dim panelsize As Drawing.Size = New Size(HiddenBrowserWidth.Value * panelWidthFactor, HiddenBrowserHeight.Value * panelHeightFactor)
-    parameterHash("DPI") = AFPDFLibUtil.GetOptimalDPI(parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize)
+    parameterHash("DPI") = ExternalPDFLib.GetOptimalDPI(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize)
     DisplayCurrentPage()
   End Sub
 
   Protected Sub FitToWidthButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles FitToWidthButton.Click
     Dim panelsize As Drawing.Size = New Size(HiddenBrowserWidth.Value * panelWidthFactor, HiddenBrowserHeight.Value * 4)
-    parameterHash("DPI") = AFPDFLibUtil.GetOptimalDPI(parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize)
+    parameterHash("DPI") = ExternalPDFLib.GetOptimalDPI(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize)
     DisplayCurrentPage()
   End Sub
 
@@ -298,7 +312,7 @@ Partial Public Class WebUserControl1
   End Sub
 
   Protected Sub SearchButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles SearchButton.Click
-    parameterHash("SearchDirection") = AFPDFLibUtil.SearchDirection.FromBeginning
+    parameterHash("SearchDirection") = ExternalPDFLib.SearchDirection.FromBeginning
     DisplayCurrentPage(True)
     'BookmarkContentCell.Text = AFPDFLibUtil.BuildHTMLBookmarksFromSearchResults( _
     'AFPDFLibUtil.GetAllSearchResults(parameterHash("PDFFileName"), parameterHash("SearchText")) _
@@ -306,12 +320,12 @@ Partial Public Class WebUserControl1
   End Sub
 
   Protected Sub SearchNextButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles SearchNextButton.Click
-    parameterHash("SearchDirection") = AFPDFLibUtil.SearchDirection.Forwards
+    parameterHash("SearchDirection") = ExternalPDFLib.SearchDirection.Forwards
     DisplayCurrentPage(True)
   End Sub
 
   Protected Sub SearchPreviousButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles SearchPreviousButton.Click
-    parameterHash("SearchDirection") = AFPDFLibUtil.SearchDirection.Backwards
+    parameterHash("SearchDirection") = ExternalPDFLib.SearchDirection.Backwards
     DisplayCurrentPage(True)
   End Sub
 End Class
