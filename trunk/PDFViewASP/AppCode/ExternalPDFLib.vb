@@ -26,6 +26,9 @@ Public Class ExternalPDFLib
     'Usage: pdfcmdline png <filename> <outputdir> <pagenumber> <dpi> <password> <searchtext> <searchdirection>
     Dim myString = CmdHelper.ExecuteCMD(appPath & "\" & appName, String.Format("{0} ""{1}"" ""{2}"" {3} {4} ""{5}"" ""{6}"" {7}", "png", sourceFileName, destFolderPath, iPageNumber, DPI, password, searchText, searchDir))
     Try
+      If Regex.IsMatch(myString, "^authfail", RegexOptions.IgnoreCase) Then
+        Return "authfail"
+      End If
       Dim myFilePath As String = Regex.Replace(myString, "png=(.+)\npage=.*$", "$1").Trim
       Dim myPageNumString As String = Regex.Replace(myString, "[\d\D]+page=(\d+)[\d\D]*$", "$1")
       ImageUtil.ApplyRotation(myFilePath, rotations)
@@ -35,20 +38,37 @@ Public Class ExternalPDFLib
     End Try
   End Function
 
-  Public Shared Function BuildHTMLBookmarks(ByVal appPath As String, ByVal sourceFileName As String, Optional ByVal pageNumberOnly As Boolean = False) As String
+  'pdflibcmdline bookmark <filename> [<password>] [<pageNumberOnly>]
+  Public Shared Function BuildHTMLBookmarks(ByVal appPath As String, ByVal sourceFileName As String, Optional ByVal userPassword As String = "", Optional ByVal pageNumberOnly As Boolean = False) As String
     BuildHTMLBookmarks = ""
-    Dim myString = CmdHelper.ExecuteCMD(appPath & "\" & appName, String.Format("{0} ""{1}"" {2}", "bookmark", sourceFileName, If(pageNumberOnly, 1, 0)))
+    Dim myString = CmdHelper.ExecuteCMD(appPath & "\" & appName, String.Format("{0} ""{1}"" ""{2}"" {3}", "bookmark", sourceFileName, userPassword, If(pageNumberOnly, 1, 0)))
     Try
       BuildHTMLBookmarks = Regex.Replace(myString, "bookmark=", "")
     Catch ex As Exception
     End Try
   End Function
 
-  Public Shared Function GetOptimalDPI(ByVal appPath As String, ByVal filename As String, ByVal pageNumber As Integer, ByRef oSize As Drawing.Size) As Integer
+  Public Shared Function GetOptimalDPI(ByVal appPath As String, ByVal filename As String, ByVal pageNumber As Integer, ByRef oSize As Drawing.Size, Optional ByVal userPassword As String = "") As Integer
     GetOptimalDPI = 150
-    Dim myString = CmdHelper.ExecuteCMD(appPath & "\" & appName, String.Format("{0} ""{1}"" {2} {3} {4}", "dpi", filename, pageNumber, oSize.Width, oSize.Height))
+    Dim myString = CmdHelper.ExecuteCMD(appPath & "\" & appName, String.Format("{0} ""{1}"" {2} {3} {4} ""{5}""", "dpi", filename, pageNumber, oSize.Width, oSize.Height, userPassword))
     Try
       GetOptimalDPI = CInt(Regex.Replace(myString, "dpi=", ""))
+    Catch ex As Exception
+    End Try
+  End Function
+
+  Public Shared Function IsPasswordRequired(ByVal appPath As String, ByVal filename As String) As Boolean
+    Dim myString = CmdHelper.ExecuteCMD(appPath & "\" & appName, String.Format("{0} ""{1}"" ", "passreq", filename))
+    Try
+      Return Regex.IsMatch(myString, "True")
+    Catch ex As Exception
+    End Try
+  End Function
+
+  Public Shared Function IsPasswordValid(ByVal appPath As String, ByVal filename As String, ByVal userPassword As String) As Boolean
+    Dim myString = CmdHelper.ExecuteCMD(appPath & "\" & appName, String.Format("{0} ""{1}"" ""{2}""", "pass", filename, userPassword))
+    Try
+      Return Regex.IsMatch(myString, "True")
     Catch ex As Exception
     End Try
   End Function

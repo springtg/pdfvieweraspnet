@@ -7,9 +7,10 @@ Imports System.ComponentModel
 
 Partial Public Class WebUserControl1
   Inherits System.Web.UI.UserControl
+  Implements System.Web.UI.ICallbackEventHandler
 
 #Region "Private Declarations"
-  Private parameterHash As Hashtable
+  Private parameterHash As New Hashtable
   Private panelHeightFactor As Single = 0.9
   Private panelWidthFactor As Single = 0.73
   Private panelBookWidthFactor As Single = 0.24
@@ -30,24 +31,25 @@ Partial Public Class WebUserControl1
         Me.Enabled = False
         Exit Property
       End If
-      If ImageUtil.IsPDF(value) Then
-        Me.Enabled = True
-        InitUserVariables()
-        parameterHash("PDFFileName") = value
-        InitPageRange()
-        InitRotation()
-        parameterHash("PagesOnly") = False
-        InitBookmarks()
-        FitToWidthButton_Click(Nothing, Nothing)
-      End If
+      InitialFileLoad(value)
     End Set
   End Property
 
-  Public WriteOnly Property Enabled()
-    Set(ByVal value)
+  Public WriteOnly Property Enabled() As Boolean
+    Set(ByVal value As Boolean)
       MainPanel.Enabled = value
     End Set
   End Property
+
+  Public WriteOnly Property Password() As String
+    Set(ByVal value As String)
+      InitUserVariables(value)
+    End Set
+  End Property
+
+  Public Function IsPasswordValid(ByVal filename As String, ByVal password As String) As Boolean
+    Return ExternalPDFLib.IsPasswordValid(Request.MapPath("bin"), filename, password)
+  End Function
 
 #End Region
 
@@ -58,6 +60,16 @@ Partial Public Class WebUserControl1
   Private Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Init
     'Persist User control state
     Page.RegisterRequiresControlState(Me)
+    'Establish hooks into javascript from codebehind
+    Dim cm As ClientScriptManager = Page.ClientScript
+    Dim cbReference As String
+    cbReference = cm.GetCallbackEventReference(Me, "arg", _
+        "ReceiveServerData", "")
+    Dim callbackScript As String = ""
+    callbackScript &= "function CallServer(arg, context)" & _
+        "{" & cbReference & "; }"
+    cm.RegisterClientScriptBlock(Me.GetType(), _
+        "CallServer", callbackScript, True)
   End Sub
 
   Protected Overrides Function SaveControlState() As Object
@@ -173,14 +185,35 @@ Partial Public Class WebUserControl1
 
 #Region "Helper Functions"
 
-  Private Sub InitUserVariables()
+  Private Sub InitialFileLoad(ByVal value As String)
+    If ImageUtil.IsPDF(value) Then
+      Me.Enabled = True
+      InitUserVariables(If(parameterHash IsNot Nothing, parameterHash("Password"), ""))
+      parameterHash("PDFFileName") = value
+      InitPageRange()
+      If (parameterHash("PDFPageCount") = -1) Then
+        Dim cm As ClientScriptManager = Page.ClientScript
+        Dim passwordScript As String = "<script type=""text/javascript""> authenticate(); </script>"
+        If cm.IsStartupScriptRegistered("PasswordPrompt") = False Then
+          cm.RegisterStartupScript(Me.GetType(), "PasswordPrompt", passwordScript)
+          Exit Sub
+        End If
+      End If
+      InitRotation()
+      parameterHash("PagesOnly") = False
+      InitBookmarks()
+      FitToWidthButton_Click(Nothing, Nothing)
+    End If
+  End Sub
+
+  Private Sub InitUserVariables(Optional ByVal password As String = "")
     parameterHash = New Hashtable
     parameterHash.Add("PDFFileName", "")
     parameterHash.Add("PDFPageCount", 0)
     parameterHash.Add("CurrentPageNumber", 1)
     parameterHash.Add("UserPassword", "")
     parameterHash.Add("OwnerPassword", "")
-    parameterHash.Add("Password", "")
+    parameterHash.Add("Password", password)
     parameterHash.Add("DPI", baseDPI)
     parameterHash.Add("PagesOnly", False)
     parameterHash.Add("CurrentImageFileName", "")
@@ -196,28 +229,13 @@ Partial Public Class WebUserControl1
   End Sub
 
   Private Sub InitPageRange()
-    'parameterHash("PDFPageCount") = ImageUtil.GetImageFrameCount(parameterHash("PDFFileName"), parameterHash("Password"))
     parameterHash("PDFPageCount") = ExternalPDFLib.GetPDFPageCount(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("Password"))
     parameterHash("CurrentPageNumber") = 1
   End Sub
 
   Private Sub InitBookmarks()
-    'Dim pdfDoc As PDFLibNet.PDFWrapper
-    'Try
-    '  pdfDoc = New PDFLibNet.PDFWrapper
-    '  pdfDoc.LoadPDF(parameterHash("PDFFileName"))
-    'Catch ex As Exception
-    '  'pdfDoc failed
-    '  If Not Nothing Is pdfDoc Then
-    '    pdfDoc.Dispose()
-    '  End If
-    'End Try
     Dim bookmarkHtml As String = ""
-    'If Not Nothing Is pdfDoc Then
-    ' bookmarkHtml = AFPDFLibUtil.BuildHTMLBookmarks(pdfDoc, parameterHash("PagesOnly"))
-    bookmarkHtml = ExternalPDFLib.BuildHTMLBookmarks(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("PagesOnly"))
-    'pdfDoc.Dispose()
-    'End If
+    bookmarkHtml = ExternalPDFLib.BuildHTMLBookmarks(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("Password"), parameterHash("PagesOnly"))
     BookmarkContentCell.Text = bookmarkHtml
     If Regex.IsMatch(bookmarkHtml, "\<\!--PageNumberOnly--\>") Then
       parameterHash("PagesOnly") = True
@@ -253,29 +271,28 @@ Partial Public Class WebUserControl1
     Dim indexNum As Integer = (parameterHash("CurrentPageNumber") - 1)
     Dim numRotation As Integer = parameterHash("RotationPage")(indexNum)
     Dim imageLocation As String
-    'If doSearch = False Then
-    '  imageLocation = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath, parameterHash("CurrentPageNumber"), parameterHash("DPI"), parameterHash("Password"), numRotation)
-    'Else
-    '  imageLocation = ASPPDFLib.GetPageFromPDF(parameterHash("PDFFileName"), destPath _
-    '                                           , parameterHash("CurrentPageNumber") _
-    '                                           , parameterHash("DPI") _
-    '                                           , parameterHash("Password") _
-    '                                           , numRotation, parameterHash("SearchText") _
-    '                                           , parameterHash("SearchDirection") _
-    '                                           )
-    '  UpdatePageLabel()
-    'End If
     If doSearch = False Then
-      imageLocation = ExternalPDFLib.GetPageFromPDF(Request.MapPath("bin"), parameterHash("PDFFileName"), destPath, parameterHash("CurrentPageNumber"), parameterHash("DPI"), parameterHash("Password"), numRotation)
+      imageLocation = ExternalPDFLib.GetPageFromPDF(Request.MapPath("bin"), _
+                                                    parameterHash("PDFFileName"), _
+                                                    destPath, parameterHash("CurrentPageNumber"), _
+                                                    parameterHash("DPI"), _
+                                                    parameterHash("Password"), _
+                                                    numRotation)
     Else
-      imageLocation = ExternalPDFLib.GetPageFromPDF(Request.MapPath("bin"), parameterHash("PDFFileName"), destPath _
+      imageLocation = ExternalPDFLib.GetPageFromPDF(Request.MapPath("bin") _
+                                               , parameterHash("PDFFileName"), destPath _
                                                , parameterHash("CurrentPageNumber") _
                                                , parameterHash("DPI") _
                                                , parameterHash("Password") _
-                                               , numRotation, parameterHash("SearchText") _
+                                               , numRotation, _
+                                               parameterHash("SearchText") _
                                                , parameterHash("SearchDirection") _
                                                )
       UpdatePageLabel()
+    End If
+    If imageLocation = "authfail" Then
+      'Handle Password needed here
+      Exit Sub
     End If
     ImageUtil.DeleteFile(parameterHash("CurrentImageFileName"))
     parameterHash("CurrentImageFileName") = imageLocation
@@ -296,13 +313,13 @@ Partial Public Class WebUserControl1
 
   Protected Sub FitToScreenButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles FitToScreenButton.Click
     Dim panelsize As Drawing.Size = New Size(HiddenBrowserWidth.Value * panelWidthFactor, HiddenBrowserHeight.Value * panelHeightFactor)
-    parameterHash("DPI") = ExternalPDFLib.GetOptimalDPI(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize)
+    parameterHash("DPI") = ExternalPDFLib.GetOptimalDPI(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize, parameterHash("Password"))
     DisplayCurrentPage()
   End Sub
 
   Protected Sub FitToWidthButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles FitToWidthButton.Click
     Dim panelsize As Drawing.Size = New Size(HiddenBrowserWidth.Value * panelWidthFactor, HiddenBrowserHeight.Value * 4)
-    parameterHash("DPI") = ExternalPDFLib.GetOptimalDPI(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize)
+    parameterHash("DPI") = ExternalPDFLib.GetOptimalDPI(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize, parameterHash("Password"))
     DisplayCurrentPage()
   End Sub
 
@@ -327,5 +344,21 @@ Partial Public Class WebUserControl1
   Protected Sub SearchPreviousButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles SearchPreviousButton.Click
     parameterHash("SearchDirection") = ExternalPDFLib.SearchDirection.Backwards
     DisplayCurrentPage(True)
+  End Sub
+
+  '(To ClientSide)
+  'Send data to the ReceiveServerData() javascript script
+  Public Function GetCallbackResult() As String Implements System.Web.UI.ICallbackEventHandler.GetCallbackResult
+    If parameterHash IsNot Nothing And parameterHash("PDFPageCount") = -1 Then
+      Return "password"
+    End If
+    Return "nopassword"
+  End Function
+
+  '(From ClientSide)
+  'Receive data from the javascript call CallServer()
+  Public Sub RaiseCallbackEvent(ByVal eventArgument As String) Implements System.Web.UI.ICallbackEventHandler.RaiseCallbackEvent
+    parameterHash("Password") = eventArgument
+    FileName = parameterHash("PDFFileName")
   End Sub
 End Class

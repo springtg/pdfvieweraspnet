@@ -16,6 +16,12 @@
         ErrorLabel.Visible = False
         Dim savePath As String = Request.MapPath("PDF") & "\" & FileUpload1.FileName
         FileUpload1.SaveAs(savePath)
+        If PDFViewer1.IsPasswordValid(savePath, tbPass.Text) = False Then
+          ShowBadPasswordMessage()
+          Exit Sub
+        End If
+        'Password must be set before the filename is set because the filename property activates the user control
+        PDFViewer1.Password = tbPass.Text
         PDFViewer1.FileName = savePath
       Else
         ErrorLabel.Text = "Only PDF files (*.pdf) are allowed to be uploaded."
@@ -23,5 +29,11 @@
       End If
     End If
   End Sub
+
+  Protected Sub ShowBadPasswordMessage()
+    ErrorLabel.Text = "Password is invalid. Please try again."
+    ErrorLabel.Visible = True
+  End Sub
+
 
 End Class

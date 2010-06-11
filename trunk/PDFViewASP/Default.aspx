@@ -6,16 +6,21 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" >
 <head runat="server">
-    <title>Untitled Page</title>
+    <title>ASP.NET PDF Viewer</title>
+
+    
 </head>
 <body>
     <form id="form1" runat="server">
-    <div style="height: 509px; width: 100%; margin-left: 0px; background-color: #FFFFFF;">
-        <asp:FileUpload ID="FileUpload1" runat="server" Width="224px" />
-        <asp:Button ID="Button1" runat="server" Text="View PDF" />
-        &nbsp;&nbsp;<asp:Label ID="ErrorLabel" runat="server" Text="" ForeColor="#CC0000" Visible="False"></asp:Label>
-        <uc1:PDFViewer ID="PDFViewer1" runat="server" />
-    </div>
+
+    <table style="height: 509px; width: 100%; margin-left: 0px; background-color: #FFFFFF;">
+    <tr>
+        <td valign="middle" align="left"><asp:Label ID="Label1" runat="server" Text="File Name:" CssClass="LeftLabelColumn" />&nbsp;<asp:FileUpload ID="FileUpload1" runat="server"  CssClass="LeftValueColumn" />&nbsp;&nbsp;&nbsp;<asp:Label ID="Label2" runat="server" Text="Password:" CssClass="LeftLabelColumn" />&nbsp;<asp:TextBox id="tbPass" TextMode="password" runat="server" />&nbsp;&nbsp;&nbsp;<asp:Button ID="Button1" runat="server" Text="View PDF" />&nbsp;&nbsp;&nbsp;<asp:Label ID="ErrorLabel" runat="server" Text="" ForeColor="#CC0000" Visible="False" /></td>
+    </tr>
+    <tr>
+    <td><uc1:PDFViewer ID="PDFViewer1" runat="server" /></td>
+    </tr>
+    </table>
     </form>
 </body>
 </html>
