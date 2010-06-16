@@ -1,6 +1,8 @@
 ﻿Imports System.Text.RegularExpressions
 Public Class ExternalPDFLib
 
+  'Thanks to Antonio Sandoval for making the XPDF Interop library PDFLibNet
+
   Public Shared appName As String = "PDFLibCmdLine.exe"
   Const RENDER_DPI As Integer = 150
 

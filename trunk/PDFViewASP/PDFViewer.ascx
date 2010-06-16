@@ -135,15 +135,17 @@ function getBrowserDimensions()
    }
    document.getElementById("<%=HiddenBrowserWidth.ClientID%>").value = browserWidth;
    document.getElementById("<%=HiddenBrowserHeight.ClientID%>").value = browserHeight;
+   CallServer(browserWidth + ',' + browserHeight ,"");
 }
                         
 function ReceiveServerData(rValue)
 {
-    if (rValue == 'password') {
-        authenticate();    
-    } 
-    if (rValue == 'nopassword') {  
-    }                                                 
+//    alert('dimensions fetched');
+//    if (rValue == 'password') {
+//        authenticate();    
+//    } 
+//    if (rValue == 'nopassword') {  
+//    }                                                 
 }
 
 function authenticate() {
@@ -153,4 +155,4 @@ function authenticate() {
 
 </script>
 
-<body onload="getBrowserDimensions();" />
+<body onload="getBrowserDimensions();" oncontextmenu="return false;"/>

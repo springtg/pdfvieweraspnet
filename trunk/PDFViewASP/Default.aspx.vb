@@ -1,8 +1,30 @@
 ﻿Partial Public Class _Default
   Inherits System.Web.UI.Page
 
-  Protected Sub Page_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+  Protected mWidth As Integer
+  Protected mHeight As Integer
+
+  Private Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Init
+    If Session("ScreenResolution") Is Nothing Then
+      Response.Redirect("detectsize.aspx")
+    Else
+      Dim myArray() As String = Session("ScreenResolution").ToString().Split(",")
+      PDFViewer1.Width = myArray(0)
+      PDFViewer1.Height = myArray(1)
+      If IsPostBack = False Then
+        'Here you could fetch filenames/passwords from a DB based on query string parameters
+        'This is just a simple example of how to set them via query string
+        If Request.QueryString("password") IsNot Nothing Then
+          PDFViewer1.Password = Request.QueryString("password").ToString
+        End If
+        If Request.QueryString("filename") IsNot Nothing Then
+          PDFViewer1.FileName = Request.QueryString("filename").ToString
+        End If
+      End If
+    End If
+
   End Sub
+
 
   'Current Upload limit is 25 MB (25000 k)
   'Change maxRequestLength in Web.config to set the upload limit

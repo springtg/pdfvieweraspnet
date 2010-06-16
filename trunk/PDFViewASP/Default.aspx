@@ -6,11 +6,9 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" >
 <head runat="server">
-    <title>ASP.NET PDF Viewer</title>
-
-    
+    <title>ASP.NET PDF Viewer</title>   
 </head>
-<body>
+<body  onload="loadFile();">
     <form id="form1" runat="server">
 
     <table style="height: 509px; width: 100%; margin-left: 0px; background-color: #FFFFFF;">
