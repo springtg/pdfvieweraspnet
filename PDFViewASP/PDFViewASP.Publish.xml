@@ -1,40 +1,41 @@
 <publishData>
   <publishTarget publishUrl="C:\Inetpub\wwwroot\PDFView\">
     <file relUrl="bin/PDFLibCmdLine.pdb" publishTime="06/10/2010 19:45:00" />
-    <file relUrl="bin/.svn/text-base/PDFLibCmdLine.exe.svn-base" publishTime="06/04/2010 06:57:08" />
+    <file relUrl="bin/.svn/text-base/PDFLibCmdLine.exe.svn-base" publishTime="06/10/2010 20:08:00" />
     <file relUrl="images/Next_24x24.png" publishTime="08/30/2009 10:58:03" />
     <file relUrl="bin/StatefullScrollPanel.dll" publishTime="09/11/2009 13:27:21" />
     <file relUrl="bin/.svn/prop-base/PDFViewASP.dll.svn-base" publishTime="06/04/2010 06:57:01" />
     <file relUrl="bin/.svn/text-base/PDFLibNet.dll.svn-base" publishTime="06/04/2010 06:57:10" />
     <file relUrl="images/Undo_24x24.png" publishTime="08/30/2009 10:58:03" />
-    <file relUrl="images/ActualSize.png" publishTime="09/07/2009 11:22:53" />
+    <file relUrl="images/SearchNext.png" publishTime="09/11/2009 06:44:56" />
+    <file relUrl="detectsize.aspx" publishTime="06/15/2010 20:10:49" />
     <file relUrl="images/FitToWidth.png" publishTime="09/07/2009 11:22:53" />
     <file relUrl="bin/.svn/prop-base/PDFLibNet.dll.svn-base" publishTime="06/04/2010 06:57:01" />
     <file relUrl="images/Zoom In_24x24.png" publishTime="08/30/2009 10:58:03" />
     <file relUrl="bin/.svn/text-base/StatefullScrollPanel.dll.svn-base" publishTime="06/04/2010 06:57:09" />
     <file relUrl="images/Zoom Out_24x24.png" publishTime="08/30/2009 10:58:03" />
-    <file relUrl="bin/PDFLibNet.dll" publishTime="09/16/2009 06:14:45" />
+    <file relUrl="images/ActualSize.png" publishTime="09/07/2009 11:22:53" />
     <file relUrl="images/Redo_24x24.png" publishTime="08/30/2009 10:58:03" />
-    <file relUrl="bin/PDFViewASP.dll" publishTime="06/10/2010 19:57:17" />
+    <file relUrl="bin/PDFViewASP.dll" publishTime="06/15/2010 20:33:04" />
     <file relUrl="lib/StatefullScrollPanel.dll" publishTime="09/11/2009 13:27:21" />
-    <file relUrl="bin/PDFViewASP.xml" publishTime="06/10/2010 19:57:17" />
-    <file relUrl="PDFViewer.ascx" publishTime="06/09/2010 21:04:16" />
+    <file relUrl="bin/PDFViewASP.xml" publishTime="06/15/2010 20:33:04" />
+    <file relUrl="PDFViewer.ascx" publishTime="06/15/2010 19:18:11" />
     <file relUrl="bin/.svn/prop-base/PDFLibCmdLine.exe.svn-base" publishTime="06/04/2010 06:57:01" />
     <file relUrl="lib/PDFLibNet.dll" publishTime="09/16/2009 06:14:45" />
-    <file relUrl="bin/.svn/entries" publishTime="06/04/2010 06:57:33" />
-    <file relUrl="bin/PDFViewASP.pdb" publishTime="06/10/2010 19:57:17" />
+    <file relUrl="bin/.svn/entries" publishTime="06/10/2010 20:08:04" />
+    <file relUrl="bin/PDFViewASP.pdb" publishTime="06/15/2010 20:33:04" />
     <file relUrl="images/FitToScreen.png" publishTime="09/07/2009 11:22:53" />
-    <file relUrl="bin/.svn/text-base/PDFViewASP.dll.svn-base" publishTime="06/04/2010 06:57:29" />
+    <file relUrl="bin/.svn/text-base/PDFViewASP.dll.svn-base" publishTime="06/10/2010 20:08:01" />
     <file relUrl="bin/PDFLibCmdLine.xml" publishTime="06/10/2010 19:45:00" />
     <file relUrl="images/SearchPrevious.png" publishTime="09/11/2009 06:44:56" />
-    <file relUrl="images/SearchNext.png" publishTime="09/11/2009 06:44:56" />
     <file relUrl="images/Previous_24x24.png" publishTime="08/30/2009 10:58:03" />
     <file relUrl="Web.config" publishTime="09/11/2009 10:09:46" />
     <file relUrl="bin/PDFLibCmdLine.exe" publishTime="06/10/2010 19:45:00" />
-    <file relUrl="bin/.svn/all-wcprops" publishTime="06/04/2010 06:57:33" />
+    <file relUrl="bin/PDFLibNet.dll" publishTime="09/16/2009 06:14:45" />
     <file relUrl="bin/.svn/prop-base/StatefullScrollPanel.dll.svn-base" publishTime="06/04/2010 06:57:01" />
     <file relUrl="images/Search_24x24.png" publishTime="09/07/2009 11:22:53" />
-    <file relUrl="Default.aspx" publishTime="06/10/2010 19:54:25" />
+    <file relUrl="bin/.svn/all-wcprops" publishTime="06/10/2010 20:08:04" />
+    <file relUrl="Default.aspx" publishTime="06/15/2010 19:53:17" />
   </publishTarget>
   <publishTarget publishUrl="C:\Inetpub\wwwroot\PDF\">
     <file relUrl="images/SearchPrevious.png" publishTime="09/11/2009 06:44:56" />

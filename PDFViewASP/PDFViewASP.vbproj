@@ -79,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Default.aspx" />
+    <Content Include="detectsize.aspx" />
     <Content Include="images\ActualSize.png" />
     <Content Include="images\FitToScreen.png" />
     <Content Include="images\FitToWidth.png" />
@@ -106,6 +107,13 @@
     </Compile>
     <Compile Include="Default.aspx.designer.vb">
       <DependentUpon>Default.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="detectsize.aspx.designer.vb">
+      <DependentUpon>detectsize.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="detectsize.aspx.vb">
+      <DependentUpon>detectsize.aspx</DependentUpon>
+      <SubType>ASPXCodebehind</SubType>
     </Compile>
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">

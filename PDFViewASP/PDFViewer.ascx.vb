@@ -47,6 +47,24 @@ Partial Public Class WebUserControl1
     End Set
   End Property
 
+  Public Property Width() As String
+    Get
+      Return HiddenBrowserWidth.Value
+    End Get
+    Set(ByVal value As String)
+      HiddenBrowserWidth.Value = value
+    End Set
+  End Property
+
+  Public Property Height() As String
+    Get
+      Return HiddenBrowserHeight.Value
+    End Get
+    Set(ByVal value As String)
+      HiddenBrowserHeight.Value = value
+    End Set
+  End Property
+
   Public Function IsPasswordValid(ByVal filename As String, ByVal password As String) As Boolean
     Return ExternalPDFLib.IsPasswordValid(Request.MapPath("bin"), filename, password)
   End Function
@@ -63,13 +81,13 @@ Partial Public Class WebUserControl1
     'Establish hooks into javascript from codebehind
     Dim cm As ClientScriptManager = Page.ClientScript
     Dim cbReference As String
-    cbReference = cm.GetCallbackEventReference(Me, "arg", _
-        "ReceiveServerData", "")
-    Dim callbackScript As String = ""
-    callbackScript &= "function CallServer(arg, context)" & _
-        "{" & cbReference & "; }"
-    cm.RegisterClientScriptBlock(Me.GetType(), _
-        "CallServer", callbackScript, True)
+    cbReference = cm.GetCallbackEventReference(Me, "arg", "ReceiveServerData", "")
+    Dim callbackScript As String = "function CallServer(arg, context)" & "{" & cbReference & "; }"
+    cm.RegisterClientScriptBlock(Me.GetType(), "CallServer", callbackScript, True)
+    'Added to allow filename setting on form load
+    If HiddenBrowserWidth.Value <> "" And HiddenBrowserWidth.Value <> "" Then
+      Session("ScreenResolution") = HiddenBrowserWidth.Value & "," & HiddenBrowserHeight.Value
+    End If
   End Sub
 
   Protected Overrides Function SaveControlState() As Object
@@ -188,6 +206,7 @@ Partial Public Class WebUserControl1
   Private Sub InitialFileLoad(ByVal value As String)
     If ImageUtil.IsPDF(value) Then
       Me.Enabled = True
+      GetCallbackResult()
       InitUserVariables(If(parameterHash IsNot Nothing, parameterHash("Password"), ""))
       parameterHash("PDFFileName") = value
       InitPageRange()
@@ -318,8 +337,12 @@ Partial Public Class WebUserControl1
   End Sub
 
   Protected Sub FitToWidthButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles FitToWidthButton.Click
+    If HiddenBrowserWidth.Value = "" Or HiddenBrowserHeight.Value = "" Then
+      GoTo DispPage
+    End If
     Dim panelsize As Drawing.Size = New Size(HiddenBrowserWidth.Value * panelWidthFactor, HiddenBrowserHeight.Value * 4)
     parameterHash("DPI") = ExternalPDFLib.GetOptimalDPI(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize, parameterHash("Password"))
+DispPage:
     DisplayCurrentPage()
   End Sub
 
@@ -349,16 +372,21 @@ Partial Public Class WebUserControl1
   '(To ClientSide)
   'Send data to the ReceiveServerData() javascript script
   Public Function GetCallbackResult() As String Implements System.Web.UI.ICallbackEventHandler.GetCallbackResult
-    If parameterHash IsNot Nothing And parameterHash("PDFPageCount") = -1 Then
-      Return "password"
-    End If
-    Return "nopassword"
+    'If parameterHash IsNot Nothing And parameterHash("PDFPageCount") = -1 Then
+    '  Return "password"
+    'End If
+    Return "server"
   End Function
 
   '(From ClientSide)
   'Receive data from the javascript call CallServer()
   Public Sub RaiseCallbackEvent(ByVal eventArgument As String) Implements System.Web.UI.ICallbackEventHandler.RaiseCallbackEvent
-    parameterHash("Password") = eventArgument
-    FileName = parameterHash("PDFFileName")
+    Dim myArray() As String = eventArgument.Split(",")
+    HiddenBrowserWidth.Value = myArray(0)
+    HiddenBrowserHeight.Value = myArray(1)
+    Me.FileName = parameterHash("PDFFileName")
+    'FitToWidthButton_Click(Nothing, Nothing)
+    'parameterHash("Password") = eventArgument
+    'FileName = parameterHash("PDFFileName")
   End Sub
 End Class
