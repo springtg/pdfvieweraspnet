@@ -6,6 +6,12 @@
 
   Private Sub Page_Init(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Init
     If Session("ScreenResolution") Is Nothing Then
+      If Request.QueryString("password") IsNot Nothing Then
+        Session("password") = Request.QueryString("password").ToString
+      End If
+      If Request.QueryString("filename") IsNot Nothing Then
+        Session("filename") = Request.QueryString("filename").ToString
+      End If
       Response.Redirect("detectsize.aspx")
     Else
       Dim myArray() As String = Session("ScreenResolution").ToString().Split(",")
@@ -16,13 +22,18 @@
         'This is just a simple example of how to set them via query string
         If Request.QueryString("password") IsNot Nothing Then
           PDFViewer1.Password = Request.QueryString("password").ToString
+        ElseIf Session("password") IsNot Nothing Then
+          PDFViewer1.Password = Session("password")
+          Session.Remove("password")
         End If
         If Request.QueryString("filename") IsNot Nothing Then
           PDFViewer1.FileName = Request.QueryString("filename").ToString
+        ElseIf Session("filename") IsNot Nothing Then
+          PDFViewer1.FileName = Session("filename")
+          Session.Remove("filename")
         End If
       End If
     End If
-
   End Sub
 
 
