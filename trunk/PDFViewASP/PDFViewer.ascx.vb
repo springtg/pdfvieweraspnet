@@ -210,13 +210,8 @@ Partial Public Class WebUserControl1
       InitUserVariables(If(parameterHash IsNot Nothing, parameterHash("Password"), ""))
       parameterHash("PDFFileName") = value
       InitPageRange()
-      If (parameterHash("PDFPageCount") = -1) Then
-        Dim cm As ClientScriptManager = Page.ClientScript
-        Dim passwordScript As String = "<script type=""text/javascript""> authenticate(); </script>"
-        If cm.IsStartupScriptRegistered("PasswordPrompt") = False Then
-          cm.RegisterStartupScript(Me.GetType(), "PasswordPrompt", passwordScript)
-          Exit Sub
-        End If
+      If (parameterHash("PDFPageCount") = -1) Then 'Password failed
+        Exit Sub
       End If
       InitRotation()
       parameterHash("PagesOnly") = False
