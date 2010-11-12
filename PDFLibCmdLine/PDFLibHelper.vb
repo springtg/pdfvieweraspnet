@@ -1,6 +1,7 @@
 ﻿Imports System.Drawing
 Imports System.Drawing.Printing
 Imports System.Text.RegularExpressions
+Imports System.Windows.Forms
 
 Public Class PDFLibHelper
 
@@ -106,8 +107,7 @@ Public Class PDFLibHelper
       End If
       Dim outGuid As Guid = Guid.NewGuid()
       Dim output As String = destPath & "\" & outGuid.ToString & ".png"
-      Dim pdfPage As PDFLibNet.PDFPage = pdfDoc.Pages(PageNumber)
-      Dim bmp As Bitmap = pdfPage.GetBitmap(DPI, True)
+      Dim bmp As Bitmap = GetImageFromPDF(pdfDoc, PageNumber, DPI)
       If searchResults.Count > 0 Then
         HighlightSearchCriteria(bmp, DPI, searchResults, PageNumber)
       End If
@@ -123,11 +123,10 @@ Public Class PDFLibHelper
     Dim myPDFDocState As PDFDocState = GetPDFDoc(filename, Password)
     If Not Nothing Is myPDFDocState.PDFDoc And myPDFDocState.RequiresPassword = False Then
       Dim outGuid As Guid = Guid.NewGuid()
-      Dim output As String = destPath & "\" & outGuid.ToString & ".jpg"
-      myPDFDocState.PDFDoc.ExportJpg(output, PageNumber, PageNumber, DPI, 90)
-      While (myPDFDocState.PDFDoc.IsJpgBusy)
-        Threading.Thread.Sleep(50)
-      End While
+      Dim output As String = destPath & "\" & outGuid.ToString & ".png"
+      Dim bmp As Bitmap = GetImageFromPDF(myPDFDocState.PDFDoc, PageNumber, DPI)
+      bmp.Save(output, Imaging.ImageFormat.Png)
+      bmp.Dispose()
       myPDFDocState.PDFDoc.Dispose()
       GetPageFromPDFNoSearch = output
     End If
@@ -258,6 +257,46 @@ StartPageList:
     End Try
     myPdfDocState.RequiresPassword = False
     Return myPdfDocState
+  End Function
+
+  Public Shared Function GetImageFromPDF(ByRef pdfDoc As PDFLibNet.PDFWrapper, ByVal PageNumber As Integer, Optional ByVal DPI As Integer = RENDER_DPI) As Bitmap
+    GetImageFromPDF = Nothing
+    Try
+      If pdfDoc IsNot Nothing Then
+        pdfDoc.CurrentPage = PageNumber
+        pdfDoc.CurrentX = 0
+        pdfDoc.CurrentY = 0
+        If DPI < 1 Then DPI = RENDER_DPI
+        pdfDoc.RenderDPI = DPI
+        Dim oPictureBox As New PictureBox
+        pdfDoc.RenderPage(oPictureBox.Handle)
+        GetImageFromPDF = Render(pdfDoc)
+        oPictureBox.Dispose()
+      End If
+    Catch ex As Exception
+      Throw ex
+    End Try
+  End Function
+
+  Public Shared Function Render(ByRef pdfDoc As PDFLibNet.PDFWrapper) As System.Drawing.Bitmap
+    Try
+      If pdfDoc IsNot Nothing Then
+        Dim backbuffer As System.Drawing.Bitmap = New Bitmap(pdfDoc.PageWidth, pdfDoc.PageHeight)
+        pdfDoc.ClientBounds = New Rectangle(0, 0, pdfDoc.PageWidth, pdfDoc.PageHeight)
+        Dim g As Graphics = Graphics.FromImage(backbuffer)
+        Using g
+          Dim hdc As IntPtr = g.GetHdc()
+          pdfDoc.DrawPageHDC(hdc)
+          g.ReleaseHdc()
+        End Using
+        g.Dispose()
+        Return backbuffer
+      End If
+    Catch ex As Exception
+      Throw ex
+      Return Nothing
+    End Try
+    Return Nothing
   End Function
 
 End Class
