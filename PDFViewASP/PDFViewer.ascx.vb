@@ -18,6 +18,7 @@ Partial Public Class WebUserControl1
   Private minDPI As Integer = 20
   Private maxDPI As Integer = 400
   Private baseDPI As Integer = 150
+  Private mUseMuPDF As Boolean = True
 #End Region
 
 #Region "Properties"
@@ -62,6 +63,15 @@ Partial Public Class WebUserControl1
     End Get
     Set(ByVal value As String)
       HiddenBrowserHeight.Value = value
+    End Set
+  End Property
+
+  Public Property UseMuPDF() As Boolean
+    Get
+      Return mUseMuPDF
+    End Get
+    Set(ByVal value As Boolean)
+      mUseMuPDF = value
     End Set
   End Property
 
@@ -283,19 +293,21 @@ Partial Public Class WebUserControl1
     InitBookmarks()
     Dim destPath As String = Request.MapPath("render")
     Dim indexNum As Integer = (parameterHash("CurrentPageNumber") - 1)
+    If indexNum < 0 Then indexNum = 0
     Dim numRotation As Integer = parameterHash("RotationPage")(indexNum)
     Dim imageLocation As String
     If doSearch = False Then
       imageLocation = ExternalPDFLib.GetPageFromPDF(Request.MapPath("bin"), _
                                                     parameterHash("PDFFileName"), _
                                                     destPath, parameterHash("CurrentPageNumber"), _
-                                                    parameterHash("DPI"), _
+                                                    mUseMuPDF, parameterHash("DPI"), _
                                                     parameterHash("Password"), _
                                                     numRotation)
     Else
       imageLocation = ExternalPDFLib.GetPageFromPDF(Request.MapPath("bin") _
                                                , parameterHash("PDFFileName"), destPath _
                                                , parameterHash("CurrentPageNumber") _
+                                               , mUseMuPDF _
                                                , parameterHash("DPI") _
                                                , parameterHash("Password") _
                                                , numRotation, _

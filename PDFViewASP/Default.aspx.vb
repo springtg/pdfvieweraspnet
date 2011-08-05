@@ -8,6 +8,8 @@
     If Session("ScreenResolution") Is Nothing Then
       If Request.QueryString("password") IsNot Nothing Then
         Session("password") = Request.QueryString("password").ToString
+      Else
+        Session("password") = ""
       End If
       If Request.QueryString("filename") IsNot Nothing Then
         Session("filename") = Request.QueryString("filename").ToString
@@ -20,18 +22,22 @@
       If IsPostBack = False Then
         'Here you could fetch filenames/passwords from a DB based on query string parameters
         'This is just a simple example of how to set them via query string
+        Dim myPassword As String = ""
+        Dim myFileName As String = ""
         If Request.QueryString("password") IsNot Nothing Then
-          PDFViewer1.Password = Request.QueryString("password").ToString
+          myPassword = Request.QueryString("password").ToString
         ElseIf Session("password") IsNot Nothing Then
-          PDFViewer1.Password = Session("password")
+          myPassword = Session("password")
           Session.Remove("password")
         End If
+        PDFViewer1.Password = myPassword
         If Request.QueryString("filename") IsNot Nothing Then
-          PDFViewer1.FileName = Request.QueryString("filename").ToString
+          myFileName = Request.QueryString("filename").ToString
         ElseIf Session("filename") IsNot Nothing Then
-          PDFViewer1.FileName = Session("filename")
+          myFileName = Session("filename")
           Session.Remove("filename")
         End If
+        PDFViewer1.FileName = myFileName
       End If
     End If
   End Sub

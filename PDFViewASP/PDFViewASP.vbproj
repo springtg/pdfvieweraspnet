@@ -33,6 +33,7 @@
     <OutputPath>bin\</OutputPath>
     <DocumentationFile>PDFViewASP.xml</DocumentationFile>
     <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PDFLibCmdLine, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -177,7 +178,7 @@
         <WebProjectProperties>
           <UseIIS>False</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>61429</DevelopmentServerPort>
+          <DevelopmentServerPort>13273</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
           <IISUrl>
           </IISUrl>
