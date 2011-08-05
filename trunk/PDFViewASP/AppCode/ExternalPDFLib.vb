@@ -18,6 +18,7 @@ Public Class ExternalPDFLib
   Public Shared Function GetPageFromPDF(ByVal appPath As String, ByVal sourceFileName As String _
                                         , ByVal destFolderPath As String _
                                         , ByRef iPageNumber As Integer _
+                                        , ByVal useMuPDF As Boolean _
                                         , Optional ByVal DPI As Integer = 0 _
                                         , Optional ByVal password As String = "" _
                                         , Optional ByVal rotations As Integer = 0 _
@@ -26,7 +27,7 @@ Public Class ExternalPDFLib
                                         ) As String
     GetPageFromPDF = ""
     'Usage: pdfcmdline png <filename> <outputdir> <pagenumber> <dpi> <password> <searchtext> <searchdirection>
-    Dim myString = CmdHelper.ExecuteCMD(appPath & "\" & appName, String.Format("{0} ""{1}"" ""{2}"" {3} {4} ""{5}"" ""{6}"" {7}", "png", sourceFileName, destFolderPath, iPageNumber, DPI, password, searchText, searchDir))
+    Dim myString = CmdHelper.ExecuteCMD(appPath & "\" & appName, String.Format("{0} ""{1}"" ""{2}"" {3} {4} ""{5}"" ""{6}"" {7} {8}", "png", sourceFileName, destFolderPath, iPageNumber, DPI, password, searchText, searchDir, If(useMuPDF, 1, 0)))
     Try
       If Regex.IsMatch(myString, "^authfail", RegexOptions.IgnoreCase) Then
         Return "authfail"

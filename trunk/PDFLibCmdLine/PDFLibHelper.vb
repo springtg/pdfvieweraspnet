@@ -66,12 +66,15 @@ Public Class PDFLibHelper
     End If
   End Function
 
-  Public Shared Function GetPageFromPDF(ByVal filename As String, ByVal destPath As String, ByRef PageNumber As Integer, Optional ByVal DPI As Integer = RENDER_DPI, Optional ByVal Password As String = "", Optional ByVal searchText As String = "", Optional ByVal searchDir As SearchDirection = 0) As String
+  Public Shared Function GetPageFromPDF(ByVal filename As String, ByVal destPath As String, ByRef PageNumber As Integer, Optional ByVal DPI As Integer = RENDER_DPI, Optional ByVal Password As String = "", Optional ByVal searchText As String = "", Optional ByVal searchDir As SearchDirection = 0, Optional ByVal useMuPDF As Integer = 0) As String
     GetPageFromPDF = ""
     Dim pdfDoc As New PDFLibNet.PDFWrapper
     pdfDoc.RenderDPI = 72
     If Password <> "" Then
       pdfDoc.UserPassword = Password
+    End If
+    If useMuPDF = 1 Then
+      pdfDoc.UseMuPDF = True
     End If
     Try
       pdfDoc.LoadPDF(filename)

@@ -20,11 +20,11 @@
         Console.WriteLine("dpi=" & PDFLibHelper.GetOptimalDPI(args(2), args(3), New System.Drawing.Size(args(4), args(5)), If(args.Length > 6, args(6), "")))
       End If
       If args(1) = "png" Then
-        If args.Length < 9 Then
-          Console.WriteLine("Usage: pdfcmdline png <filename> <outputdir> <pagenumber> <dpi> <password> <searchtext> <searchdirection>")
+        If args.Length < 10 Then
+          Console.WriteLine("Usage: pdfcmdline png <filename> <outputdir> <pagenumber> <dpi> <password> <searchtext> <searchdirection> <useMuPDF>")
           Exit Sub
         End If
-        Dim myResponse As String = PDFLibHelper.GetPageFromPDF(args(2), args(3), args(4), args(5), args(6), args(7), args(8))
+        Dim myResponse As String = PDFLibHelper.GetPageFromPDF(args(2), args(3), args(4), args(5), args(6), args(7), args(8), args(9))
         If myResponse = PDFLibHelper.BAD_PASSWORD Then
           Console.WriteLine(myResponse)
         Else

@@ -8,7 +8,8 @@
 <head runat="server">
     <title>ASP.NET PDF Viewer</title>   
 </head>
-<body  onload="loadFile();">
+<%--<body  onload="loadFile();">--%>
+<body>
     <form id="form1" runat="server">
 
     <table style="height: 509px; width: 100%; margin-left: 0px; background-color: #FFFFFF;">
