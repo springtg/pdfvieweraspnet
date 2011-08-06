@@ -1,4 +1,6 @@
-﻿Partial Public Class _Default
+﻿Imports System.IO
+
+Partial Public Class _Default
   Inherits System.Web.UI.Page
 
   Protected mWidth As Integer
@@ -24,6 +26,7 @@
         'This is just a simple example of how to set them via query string
         Dim myPassword As String = ""
         Dim myFileName As String = ""
+        Dim myPDFDir As String = Request.MapPath("PDF")
         If Request.QueryString("password") IsNot Nothing Then
           myPassword = Request.QueryString("password").ToString
         ElseIf Session("password") IsNot Nothing Then
@@ -37,7 +40,7 @@
           myFileName = Session("filename")
           Session.Remove("filename")
         End If
-        PDFViewer1.FileName = myFileName
+        PDFViewer1.FileName = Path.Combine(myPDFDir, myFileName)
       End If
     End If
   End Sub
