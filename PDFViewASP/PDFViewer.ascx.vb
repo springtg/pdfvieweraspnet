@@ -19,6 +19,7 @@ Partial Public Class WebUserControl1
   Private maxDPI As Integer = 400
   Private baseDPI As Integer = 150
   Private mUseMuPDF As Boolean = True
+
 #End Region
 
 #Region "Properties"
@@ -32,6 +33,9 @@ Partial Public Class WebUserControl1
         Me.Enabled = False
         Exit Property
       End If
+      If parameterHash IsNot Nothing AndAlso parameterHash.Count > 0 AndAlso parameterHash("PDFFileName") <> value Then
+        InitUserVariables()
+      End If
       InitialFileLoad(value)
     End Set
   End Property
@@ -44,7 +48,9 @@ Partial Public Class WebUserControl1
 
   Public WriteOnly Property Password() As String
     Set(ByVal value As String)
-      InitUserVariables(value)
+      If parameterHash Is Nothing OrElse parameterHash.Count = 0 Then
+        InitUserVariables(value)
+      End If
     End Set
   End Property
 
@@ -76,7 +82,11 @@ Partial Public Class WebUserControl1
   End Property
 
   Public Function IsPasswordValid(ByVal filename As String, ByVal password As String) As Boolean
-    Return ExternalPDFLib.IsPasswordValid(Request.MapPath("bin"), filename, password)
+    parameterHash = Nothing 'this will force init on password assignment
+    Me.Password = password 'this will init the hash table variables
+    parameterHash("PDFFileName") = filename
+    GetPDFInfo()
+    Return parameterHash("PasswordValid")
   End Function
 
 #End Region
@@ -107,7 +117,6 @@ Partial Public Class WebUserControl1
   Protected Overrides Sub LoadControlState(ByVal savedState As Object)
     parameterHash = CType(savedState, Hashtable)
   End Sub
-
 
   Protected Sub Control_load() Handles MyBase.Load
     ResizePanels()
@@ -217,15 +226,18 @@ Partial Public Class WebUserControl1
     If ImageUtil.IsPDF(value) Then
       Me.Enabled = True
       GetCallbackResult()
-      InitUserVariables(If(parameterHash IsNot Nothing, parameterHash("Password"), ""))
-      parameterHash("PDFFileName") = value
-      InitPageRange()
+      If parameterHash IsNot Nothing AndAlso parameterHash.Count > 0 AndAlso parameterHash("PDFFileName") = value Then
+        'Do Nothing
+      Else
+        InitUserVariables(If(parameterHash IsNot Nothing, parameterHash("Password"), ""))
+        parameterHash("PDFFileName") = value
+        parameterHash("PagesOnly") = False
+      End If
+      GetPDFInfo()
       If (parameterHash("PDFPageCount") = -1) Then 'Password failed
         Exit Sub
       End If
       InitRotation()
-      parameterHash("PagesOnly") = False
-      InitBookmarks()
       FitToWidthButton_Click(Nothing, Nothing)
     End If
   End Sub
@@ -240,6 +252,7 @@ Partial Public Class WebUserControl1
     parameterHash.Add("Password", password)
     parameterHash.Add("DPI", baseDPI)
     parameterHash.Add("PagesOnly", False)
+    parameterHash.Add("PasswordValid", False)
     parameterHash.Add("CurrentImageFileName", "")
     parameterHash.Add("Rotation", New List(Of Integer))
     parameterHash.Add("Bookmarks", "")
@@ -252,17 +265,46 @@ Partial Public Class WebUserControl1
     PageNumberTextBox.Text = parameterHash("CurrentPageNumber")
   End Sub
 
+  Private Sub GetPDFInfo()
+    If parameterHash("PDFPageCount") = 0 Then
+      parameterHash("CurrentPageNumber") = 1
+      Dim myList As List(Of DictionaryEntry) = ExternalPDFLib.GetPDFInfo(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("Password"))
+      If myList.Count = 3 Then
+        parameterHash("PasswordValid") = myList(0).Value
+        parameterHash("PDFPageCount") = myList(1).Value
+        parameterHash("Bookmarks") = myList(2).Value
+        BookmarkContentCell.Text = parameterHash("Bookmarks")
+        If Regex.IsMatch(parameterHash("Bookmarks"), "\<\!--PageNumberOnly--\>") Then
+          parameterHash("PagesOnly") = True
+        End If
+      End If
+    End If
+  End Sub
+
   Private Sub InitPageRange()
-    parameterHash("PDFPageCount") = ExternalPDFLib.GetPDFPageCount(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("Password"))
-    parameterHash("CurrentPageNumber") = 1
+    If parameterHash("PDFPageCount") = 0 Then
+      parameterHash("PDFPageCount") = ExternalPDFLib.GetPDFPageCount(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("Password"))
+      parameterHash("CurrentPageNumber") = 1
+      If Session("PageCount") Is Nothing Then
+        Session("PageCount") = parameterHash("PDFPageCount")
+      End If
+      If Session("CurrentPageNumber") Is Nothing Then
+        Session("CurrentPageNumber") = parameterHash("CurrentPageNumber")
+      End If
+    End If
   End Sub
 
   Private Sub InitBookmarks()
-    Dim bookmarkHtml As String = ""
-    bookmarkHtml = ExternalPDFLib.BuildHTMLBookmarks(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("Password"), parameterHash("PagesOnly"))
-    BookmarkContentCell.Text = bookmarkHtml
-    If Regex.IsMatch(bookmarkHtml, "\<\!--PageNumberOnly--\>") Then
-      parameterHash("PagesOnly") = True
+    If parameterHash("Bookmarks") = "" Then
+      Dim bookmarkHtml As String = ""
+      bookmarkHtml = ExternalPDFLib.BuildHTMLBookmarks(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("Password"), parameterHash("PagesOnly"))
+      parameterHash("Bookmarks") = bookmarkHtml
+      BookmarkContentCell.Text = bookmarkHtml
+      If Regex.IsMatch(bookmarkHtml, "\<\!--PageNumberOnly--\>") Then
+        parameterHash("PagesOnly") = True
+      End If
+    Else
+      BookmarkContentCell.Text = parameterHash("Bookmarks")
     End If
   End Sub
 
@@ -282,7 +324,11 @@ Partial Public Class WebUserControl1
     End If
   End Sub
 
-  Private Sub DisplayCurrentPage(Optional ByVal doSearch As Boolean = False)
+  Private Sub DisplayCurrentPage(Optional ByVal doSearch As Boolean = False, Optional ByVal width As Integer = 0, Optional ByVal height As Integer = 0)
+    Dim objSize As New Size(width, height)
+    If objSize.Height = 0 OrElse objSize.Width = 0 Then
+      objSize = Size.Empty
+    End If
     'Set how long to wait before deleting the generated PNG file
     Dim expirationDate As DateTime = Now.AddMinutes(5)
     Dim noSlide As TimeSpan = System.Web.Caching.Cache.NoSlidingExpiration
@@ -300,7 +346,7 @@ Partial Public Class WebUserControl1
       imageLocation = ExternalPDFLib.GetPageFromPDF(Request.MapPath("bin"), _
                                                     parameterHash("PDFFileName"), _
                                                     destPath, parameterHash("CurrentPageNumber"), _
-                                                    mUseMuPDF, parameterHash("DPI"), _
+                                                    mUseMuPDF, objSize, parameterHash("DPI"), _
                                                     parameterHash("Password"), _
                                                     numRotation)
     Else
@@ -308,6 +354,7 @@ Partial Public Class WebUserControl1
                                                , parameterHash("PDFFileName"), destPath _
                                                , parameterHash("CurrentPageNumber") _
                                                , mUseMuPDF _
+                                               , objSize _
                                                , parameterHash("DPI") _
                                                , parameterHash("Password") _
                                                , numRotation, _
@@ -339,8 +386,8 @@ Partial Public Class WebUserControl1
 
   Protected Sub FitToScreenButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles FitToScreenButton.Click
     Dim panelsize As Drawing.Size = New Size(HiddenBrowserWidth.Value * panelWidthFactor, HiddenBrowserHeight.Value * panelHeightFactor)
-    parameterHash("DPI") = ExternalPDFLib.GetOptimalDPI(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize, parameterHash("Password"))
-    DisplayCurrentPage()
+    'parameterHash("DPI") = ExternalPDFLib.GetOptimalDPI(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize, parameterHash("Password"))
+    DisplayCurrentPage(False, panelsize.Width, panelsize.Height)
   End Sub
 
   Protected Sub FitToWidthButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles FitToWidthButton.Click
@@ -348,9 +395,9 @@ Partial Public Class WebUserControl1
       GoTo DispPage
     End If
     Dim panelsize As Drawing.Size = New Size(HiddenBrowserWidth.Value * panelWidthFactor, HiddenBrowserHeight.Value * 4)
-    parameterHash("DPI") = ExternalPDFLib.GetOptimalDPI(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize, parameterHash("Password"))
+    'parameterHash("DPI") = ExternalPDFLib.GetOptimalDPI(Request.MapPath("bin"), parameterHash("PDFFileName"), parameterHash("CurrentPageNumber"), panelsize, parameterHash("Password"))
 DispPage:
-    DisplayCurrentPage()
+    DisplayCurrentPage(False, panelsize.Width, panelsize.Height)
   End Sub
 
   Protected Sub ActualSizeButton_Click(ByVal sender As Object, ByVal e As EventArgs) Handles ActualSizeButton.Click
@@ -391,7 +438,12 @@ DispPage:
     Dim myArray() As String = eventArgument.Split(",")
     HiddenBrowserWidth.Value = myArray(0)
     HiddenBrowserHeight.Value = myArray(1)
-    Me.FileName = parameterHash("PDFFileName")
+    If parameterHash("PDFPageCount") = 0 Then
+      Me.FileName = parameterHash("PDFFileName")
+    Else
+      'FitToWidthButton_Click(Nothing, Nothing)
+    End If
+    'Me.FileName = parameterHash("PDFFileName")
     'FitToWidthButton_Click(Nothing, Nothing)
     'parameterHash("Password") = eventArgument
     'FileName = parameterHash("PDFFileName")
