@@ -7,6 +7,30 @@ Public Class PDFLibHelper
 
   Const RENDER_DPI As Integer = 150
   Public Const BAD_PASSWORD As String = "authfail"
+  Public Const BAD_FILE As String = "fileopenerror"
+
+  Public Shared Function GetPDFInfo(ByVal filepath As String, Optional ByVal userPassword As String = "") As List(Of DictionaryEntry)
+    Dim myList As New List(Of DictionaryEntry)
+    Dim pdfDoc As New PDFLibNet.PDFWrapper
+    Try
+      pdfDoc.UserPassword = userPassword
+      pdfDoc.LoadPDF(filepath)
+      myList.Add(New DictionaryEntry("pass", True))
+      myList.Add(New DictionaryEntry("count", pdfDoc.PageCount))
+      Dim myHTMLBookmarks As String = BuildHTMLBookmarks(pdfDoc, False)
+      myList.Add(New DictionaryEntry("bookmark", myHTMLBookmarks))
+    Catch ex As System.Security.SecurityException
+      myList.Add(New DictionaryEntry("pass", False))
+      myList.Add(New DictionaryEntry("count", 0))
+      myList.Add(New DictionaryEntry("bookmark", ""))
+      Return myList
+    Catch ex As Exception
+      Return myList
+    Finally
+      pdfDoc.Dispose()
+    End Try
+    Return myList
+  End Function
 
   Public Shared Function IsPasswordRequired(ByVal filepath As String) As Boolean
     Dim pdfDoc As New PDFLibNet.PDFWrapper
@@ -66,8 +90,17 @@ Public Class PDFLibHelper
     End If
   End Function
 
-  Public Shared Function GetPageFromPDF(ByVal filename As String, ByVal destPath As String, ByRef PageNumber As Integer, Optional ByVal DPI As Integer = RENDER_DPI, Optional ByVal Password As String = "", Optional ByVal searchText As String = "", Optional ByVal searchDir As SearchDirection = 0, Optional ByVal useMuPDF As Integer = 0) As String
-    GetPageFromPDF = ""
+  Public Shared Function GetPageFromPDF(ByVal filename As String, _
+                                        ByVal destPath As String, _
+                                        ByRef PageNumber As Integer, _
+                                        ByVal objSize As Size, _
+                                        Optional ByVal DPI As Integer = RENDER_DPI, _
+                                        Optional ByVal Password As String = "", _
+                                        Optional ByVal searchText As String = "", _
+                                        Optional ByVal searchDir As SearchDirection = 0, _
+                                        Optional ByVal useMuPDF As Integer = 0 _
+                                        ) As List(Of String)
+    Dim myList As New List(Of String)
     Dim pdfDoc As New PDFLibNet.PDFWrapper
     pdfDoc.RenderDPI = 72
     If Password <> "" Then
@@ -79,9 +112,15 @@ Public Class PDFLibHelper
     Try
       pdfDoc.LoadPDF(filename)
     Catch ex As System.Security.SecurityException
-      Return BAD_PASSWORD
+      myList.Add("png=" & BAD_PASSWORD)
+      myList.Add("page=" & PageNumber)
+      myList.Add("dpi=" & DPI)
+      Return myList
     Catch ex As Exception
-      Exit Function
+      myList.Add("png=" & BAD_FILE)
+      myList.Add("page=" & PageNumber)
+      myList.Add("dpi=" & DPI)
+      Return myList
     End Try
     If Not Nothing Is pdfDoc Then
       pdfDoc.CurrentPage = PageNumber
@@ -110,14 +149,20 @@ Public Class PDFLibHelper
       End If
       Dim outGuid As Guid = Guid.NewGuid()
       Dim output As String = destPath & "\" & outGuid.ToString & ".png"
+      If objSize <> Size.Empty Then
+        DPI = GetOptimalDPI(pdfDoc, PageNumber, objSize)
+      End If
       Dim bmp As Bitmap = GetImageFromPDF(pdfDoc, PageNumber, DPI)
       If searchResults.Count > 0 Then
         HighlightSearchCriteria(bmp, DPI, searchResults, PageNumber)
       End If
       bmp.Save(output, System.Drawing.Imaging.ImageFormat.Png)
       bmp.Dispose()
-      GetPageFromPDF = output
       pdfDoc.Dispose()
+      myList.Add("png=" & output)
+      myList.Add("page=" & PageNumber)
+      myList.Add("dpi=" & DPI)
+      Return myList
     End If
   End Function
 
@@ -155,15 +200,14 @@ Public Class PDFLibHelper
 
   End Sub
 
-  Public Shared Function GetOptimalDPI(ByVal filename As String, ByVal pageNumber As Integer, ByRef oSize As Drawing.Size, Optional ByVal Password As String = "") As Integer
+  Public Shared Function GetOptimalDPI(ByRef pdfDoc As PDFLibNet.PDFWrapper, ByVal pageNumber As Integer, ByRef oSize As Drawing.Size, Optional ByVal Password As String = "") As Integer
     GetOptimalDPI = 0
-    Dim myPDFDocState As PDFDocState = GetPDFDoc(filename, Password)
-    If Not Nothing Is myPDFDocState.PDFDoc And myPDFDocState.RequiresPassword = False Then
-      If myPDFDocState.PDFDoc.Pages(pageNumber).Width > 0 And myPDFDocState.PDFDoc.Pages(pageNumber).Height > 0 Then
+    If Not Nothing Is pdfDoc Then
+      If pdfDoc.Pages(pageNumber).Width > 0 And pdfDoc.Pages(pageNumber).Height > 0 Then
         Dim picHeight As Integer = oSize.Height
         Dim picWidth As Integer = oSize.Width
-        Dim docHeight As Integer = myPDFDocState.PDFDoc.Pages(pageNumber).Height
-        Dim docWidth As Integer = myPDFDocState.PDFDoc.Pages(pageNumber).Width
+        Dim docHeight As Integer = pdfDoc.Pages(pageNumber).Height
+        Dim docWidth As Integer = pdfDoc.Pages(pageNumber).Width
         Dim HScale As Single = oSize.Width / docWidth
         Dim VScale As Single = oSize.Height / docHeight
         If VScale > HScale Then
@@ -172,14 +216,35 @@ Public Class PDFLibHelper
           GetOptimalDPI = Math.Floor(253 * VScale)
         End If
       End If
+    End If
+  End Function
+
+  Public Shared Function GetOptimalDPI(ByVal filename As String, ByVal pageNumber As Integer, ByRef oSize As Drawing.Size, Optional ByVal Password As String = "") As Integer
+    GetOptimalDPI = 0
+    Dim myPDFDocState As PDFDocState = GetPDFDoc(filename, Password)
+    If Not Nothing Is myPDFDocState.PDFDoc And myPDFDocState.RequiresPassword = False Then
+      GetOptimalDPI = GetOptimalDPI(myPDFDocState.PDFDoc, pageNumber, oSize, Password)
       myPDFDocState.PDFDoc.Dispose()
     End If
   End Function
 
   Public Shared Function BuildHTMLBookmarks(ByVal filename As String, Optional ByVal Password As String = "", Optional ByVal pageNumberOnly As Boolean = False) As String
-
     Dim myPDFDocState As PDFDocState = GetPDFDoc(filename, Password)
-    If Nothing Is myPDFDocState.PDFDoc Or myPDFDocState.RequiresPassword = True Then
+    Dim myString As String = ""
+    If Nothing Is myPDFDocState.PDFDoc Then
+      Return myString
+    ElseIf myPDFDocState.RequiresPassword Then
+      GoTo ReturnResults
+    End If
+    myString = BuildHTMLBookmarks(myPDFDocState.PDFDoc, pageNumberOnly)
+ReturnResults:
+    myPDFDocState.PDFDoc.Dispose()
+    Return myString
+  End Function
+
+  Public Shared Function BuildHTMLBookmarks(ByRef pdfDoc As PDFLibNet.PDFWrapper, Optional ByVal pageNumberOnly As Boolean = False) As String
+
+    If Nothing Is pdfDoc Then
       Return ""
     End If
 
@@ -187,17 +252,17 @@ Public Class PDFLibHelper
       GoTo StartPageList
     End If
 
-    If myPDFDocState.PDFDoc.Outline.Count <= 0 Then
+    If pdfDoc.Outline.Count <= 0 Then
 StartPageList:
       BuildHTMLBookmarks = "<!--PageNumberOnly--><ul>"
-      For i As Integer = 1 To myPDFDocState.PDFDoc.PageCount
+      For i As Integer = 1 To pdfDoc.PageCount
         BuildHTMLBookmarks &= "<li><a href=""javascript:changePage('" & i & "')"">Page " & i & "</a></li>"
       Next
       BuildHTMLBookmarks &= "</ul>"
       Exit Function
     Else
       BuildHTMLBookmarks = ""
-      FillHTMLTreeRecursive(myPDFDocState.PDFDoc.Outline, BuildHTMLBookmarks, myPDFDocState.PDFDoc)
+      FillHTMLTreeRecursive(pdfDoc.Outline, BuildHTMLBookmarks, pdfDoc)
       If System.Text.RegularExpressions.Regex.IsMatch(BuildHTMLBookmarks, "\d") = False Then
         BuildHTMLBookmarks = ""
         GoTo StartPageList
@@ -214,7 +279,6 @@ StartPageList:
     Next
     BuildHTMLBookmarksFromSearchResults &= "</ul>"
   End Function
-
 
   Public Shared Sub FillHTMLTreeRecursive(ByVal olParent As PDFLibNet.OutlineItemCollection(Of PDFLibNet.OutlineItem), ByRef htmlString As String, ByRef pdfDoc As PDFLibNet.PDFWrapper)
     htmlString &= "<ul>"
